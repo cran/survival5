@@ -37,7 +37,7 @@ naresid.omit <- function(omit, x) {
 	n <- nrow(x)
 	keep <- rep(NA,n+ length(omit))
 	keep[-omit] <- 1:n
-	x <- x[keep,,drop=F]
+	x <- x[keep,,drop=FALSE]
 	temp <- dimnames(x)[[1]]
 	if (length(temp)) {
 	    temp[omit] <- names(omit)

@@ -1,3 +1,11 @@
+2.4 fixed bug in coxpenal.fit (<m.carvalho@lancaster.ac.uk>) when a
+    sparse frailty term is specified before a non-sparse one,
+    added clogit(), added Mac makefile (Stefano Iacus), added "Maintainer"
+    field, bug in plot.survfit <markc@nswcc.org.au>, better
+    environment(formula) handling in coxph, a basehaz() function.
+
+2.3 upstream bug fix for stratifed, penalised coxph
+
 2.2 Fixed anova.survreg,anova.survreglist. Some doc fixes. legends for
     plot.survfit
 

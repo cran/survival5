@@ -1,4 +1,6 @@
 \name{residuals.coxph}
+\alias{residuals.coxph.penal}
+\alias{residuals.coxph.null}
 \alias{residuals.coxph}
 \title{
 Calculate Residuals for a `coxph' Fit

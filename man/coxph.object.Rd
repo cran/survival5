@@ -1,5 +1,7 @@
 \name{coxph.object}
 \alias{coxph.object}
+\alias{print.coxph}
+\alias{summary.coxph}
 \title{
 Proportional Hazards Regression Object
 }
@@ -13,8 +15,7 @@ Objects of this class have methods for the functions \code{print},
 }
 \section{COMPONENTS}{
 The following components must be included in a legitimate \code{coxph} object.
-}
-\arguments{
+\describe{
 \item{coefficients}{
 the coefficients of the linear predictor, which multiply the columns of the
 model matrix.  If the model is over-determined there will be missing
@@ -67,7 +68,7 @@ the computation method used.
 }
 \item{na.action}{
 the \code{na.action} attribute, if any, that was returned by the \code{na.action} routine.
-
+}
 
 The object will also contain the following, for documentation see the \code{lm}
 object: \code{terms}, \code{assign}, \code{formula}, \code{call}, and, optionally, \code{x}, \code{y},

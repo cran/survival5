@@ -13,8 +13,7 @@ Objects of this class have methods for the functions \code{print},
 }
 \section{COMPONENTS}{
 The following components must be included in a legitimate \code{survfit} object.
-}
-\arguments{
+\describe{
 \item{time}{
 the time points at which the curve has a step.
 }
@@ -55,7 +54,7 @@ to missing values.
 }
 \item{call}{
 the call that produced the object.
-}}
+}}}
 \section{SUBSCRIPTS}{
 Survfit objects that contain multiple survival curves can be subscripted.
 This is most often used to plot a subset of the curves.

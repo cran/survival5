@@ -186,7 +186,7 @@ void coxfit5_a(int *nusedx, int *nvarx, double *yy,
 	    ndead=0;
 	    for (j=i; j<nused; j++) {
 		k = sort[j];
-		if ((time[k] < time[p]) || (j==strata[istrat])) break;
+		if ((time[k] != time[p]) || (j==strata[istrat])) break;
 		ndead += status[p];
 		temp += weights[k];
 		}

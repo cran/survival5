@@ -17,7 +17,7 @@ survfit <- function (formula, data, weights, subset, na.action, ...) {
     else {
 	# Ok, I have a formula
         # grab the data and process it
-	m <- match.call(expand=F)
+	m <- match.call(expand=FALSE)
 	m$... <- NULL
 
 	Terms <- terms(formula, 'strata')
@@ -59,7 +59,7 @@ survfit <- function (formula, data, weights, subset, na.action, ...) {
 # The subscript function is bundled in here, although used most
 #  often in plotting
 
-"[.survfit" <- function(fit, ..., drop=F) {
+"[.survfit" <- function(fit, ..., drop=FALSE) {
     if (missing(..1)) i<- NULL  else i <- ..1
     if (missing(..2)) j<- NULL  else j <- ..2
     if (is.null(fit$strata)) {
@@ -117,4 +117,24 @@ survfit <- function (formula, data, weights, subset, na.action, ...) {
     fit
     }
 
+basehaz<-function(fit,centered=TRUE){
+    if(!inherits(fit,"coxph"))
+        stop("must be a coxph object")
 
+    sfit<-survfit(fit)
+
+    H<- -log(fit$surv)
+
+    strata<-sfit$strata
+    if (!is.null(strata))
+        strata<-rep(names(strata),strata)
+    
+    if (centered){
+        z0<-fit$means
+        bz0<-sum(z0*coef(fit))
+        H<- H*exp(-bz0)
+    }
+        
+    return(data.frame(hazard=H,time=surv$time,strata=strata))
+
+}

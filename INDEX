@@ -1,4 +1,5 @@
 Surv 	 	 Package a survival variable 
+clogit		 Conditional logistic regression
 cluster 	 Identify clusters. 
 cox.zph 	 Test the proportional hazards assumption of a Cox regression. 
 coxph 	 	 Proportional Hazards Regression 

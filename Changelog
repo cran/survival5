@@ -1,4 +1,6 @@
 
+
+
 Changes made since posting survival5
 
 15Feb99: The predict.coxph function would fail for type='terms' if the model
@@ -101,3 +103,18 @@ as was described above for coxpenal.fit (June99).
 Post new code to Statsci and R.
 
 -----------------------------------------------------
+4Jan01: Fix serious bug in coxfit5.c. Penalized model + strata could lead
+to an infinite loop or possibly wrong answers.  The problem does not apply
+to 
+(start,stop] models.
+       1. Smallest time point in one stratum is censored.
+       2. Smallest time point in a later stratum isn't censored.
+       3. In the next strata after this, consider the set of points
+    with time > (min time in stratum of bullet 2). If this contains both
+    censored and uncensored points, with at least one censored time >
+    at least one uncensored time ---> infinite loop. The user-supplied
+data
+    set that demonstrated the issue had over 10,000 observations; just to
+    make tracking the bug down more challenging....
+       If the set in question is all uncensored, this leads to a wrong
+    answer (I think) due to miscounting of tied times.

@@ -178,7 +178,8 @@ coxph <- function(formula=formula(data), data=sys.frame(sys.parent()),
     }
     if (!is.null(weights) && any(weights!=1)) fit$weights <- weights
     
-    fit$formula <- as.vector(attr(Terms, "formula"))
+    ##fit$formula <- as.vector(attr(Terms, "formula"))
+    fit$formula<-formula(Terms) ## get the environments right
     fit$call <- call
     fit$method <- method
     fit

@@ -112,7 +112,7 @@ coxpenal.fit <- function(x, y, strata, offset, init, control,
 	    }
 	for (i in 1:npenal) {
 	    j <- pcols[[i]]
-	    if (j[1] > fcol) pcol[[i]] <- j-1
+	    if (j[1] > fcol) pcols[[i]] <- j-1
 	    }
 
 	frailx <- x[, fcol]

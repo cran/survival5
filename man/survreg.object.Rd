@@ -1,5 +1,10 @@
 \name{survreg.object}
 \alias{survreg.object}
+\alias{residuals.survreg}
+\alias{print.survreg}
+\alias{summary.survreg}
+\alias{predict.survreg}
+
 \title{
 Parametric Survival Model Object
 }
@@ -11,8 +16,7 @@ Objects of this class have methods for the functions \code{print},
 }
 \section{COMPONENTS}{
 The following components must be included in a legitimate \code{survreg} object.
-}
-\arguments{
+\describe{
 \item{coefficients}{
 the coefficients of the \code{linear.predictors}, which multiply  the
 columns of the model
@@ -65,7 +69,7 @@ other model results (some are optional):
 \code{linear predictors}, \code{weights}, \code{x}, \code{y}, \code{model}, 
 \code{call}, \code{terms} and \code{formula}.
 See \code{lm}.
-}}
+}}}
 \seealso{
 \code{\link{survreg}}, \code{\link{lm}}
 }

@@ -98,7 +98,7 @@ survfit.coxph.null <-
 	temp _ list(n=n, time=surv$y[ntime,1],
 		 n.risk=surv$y[ntime,2],
 		 n.event=surv$y[ntime,3],
-		 surv=tsurv,
+		 surv=tsurv,ntimes.strata=tstrat,
 		 strata= tstrat, strata.all=strata.all, type=type)
 	}
     if (se.fit) temp$std.err <- sqrt(tvar)

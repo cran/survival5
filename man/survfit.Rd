@@ -3,6 +3,7 @@
 \alias{survfit.km}
 \alias{survfit.coxph.null}
 \alias{survfit.coxph}
+\alias{basehaz}
 \title{
 Compute a Survival Curve for Censored Data
 }
@@ -19,6 +20,7 @@ survfit(formula, data=sys.parent(), weights, subset, na.action,
         error=c("greenwood","tsiatis"),
         conf.type=c("log","log-log","plain","none"),
         conf.lower=c("usual", "peto", "modified"))
+basehaz(fit,centered=TRUE)
 }
 \arguments{
 \item{formula}{
@@ -110,11 +112,16 @@ This is especially useful for survival curves with a long flat tail.
 The Peto lower limit is based on the same 'effective n' argument as the
 modified limit, but also replaces the usual Greenwood variance term with
 a simple approximation.  It is known to be conservative.
-}}
+}
+\item{fit}{a \code{coxph} object}
+\item{centered}{Compute the baseline hazard at the covariate mean rather than at zero?}
+}
 \value{
 a \code{survfit} object; see the help on \code{survfit.object} for
 details. Methods defined for \code{survfit} objects are provided for
 \code{print}, \code{plot}, \code{lines}, and \code{points}.
+
+For \code{basehaz}, a dataframe with the baseline hazard, times, and strata.
 }
 \details{
 Actually, the estimates used are the Kalbfleisch-Prentice

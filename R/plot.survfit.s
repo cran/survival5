@@ -43,6 +43,7 @@ plot.survfit<- function(x, conf.int,  mark.time=T,
     else {
 	nstrat <- length(x$strata)
 	stemp <- rep(1:nstrat,x$ntimes.strata)
+	##stemp <- rep(1:nstrat,x$strata)
         }
 
     ssurv <- x$surv
