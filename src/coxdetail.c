@@ -1,4 +1,5 @@
 /*  SCCS @(#)coxdetail.c	5.2 10/27/98
+/*
 ** Return all of the internal peices of a cox model
 **
 **  the input parameters are

@@ -23,19 +23,35 @@ void agfit2( int   *maxiter,  int   *nusedx,  int   *nvarx,
 	     int   *flag,     double *work,    int   *end,
 	     double *eps,      double *tol_chol,double *sctest);
 
-void agfit4_a(int *nusedx, int *nvarx, double *yy, 
+void agfit3( int   *maxiter,  int   *nusedx,  int   *nvarx, 
+	     double *start,    double *stop,    int   *event, 
+	     double *covar2,   double *offset,  double *weights,
+	     int   *nstrat,   int   *strata,  int   *sort1,
+	     int   *sort2,    double *means,   double *beta, 
+	     double *u,        double *imat2,   double loglik[2], 
+	     int   *flag,     double *work,   
+	     double *eps,      double *tol_chol, double *sctest);
+
+void agfit5_a(int *nusedx, int *nvarx, double *yy, 
 	       double *covar2, double *offset2,
-	       double *weights2, int *strata2,
+	       double *weights2, 
+	       int   *strata,  int   *sort,
 	       double *means, double *beta, double *u, 
 	       double *loglik, 
 	       int *methodx, int *ptype2, int *pdiag2,
-	       int *nfrail,  int *frail2, void *expr1, void *expr2, void *Rrho);
+	      int *nfrail,  int *frail2,
+	      void *fexpr1,void *fexpr2, void *rho);
 
-void agfit4_b(int *maxiter, int *nusedx, int *nvarx, 
-	       double *beta, double *u,
+void agfit5_b(int *maxiter, int *nusedx, int *nvarx, 
+	       int *strata, double *beta, double *u,
 	       double *imat2,  double *jmat2, double *loglik, 
 	       int *flag,  double *eps, double *tolerch, int *methodx, 
-	       int *nfrail, double *fbeta, double *fdiag);
+	       int *nfrail, double *fbeta, double *fdiag,
+	      /* R callback information */
+	      void *fexpr1, void *fexpr2, void *rho);
+
+void agfit5_c(int *nusedx, int *nvar, int *strata,
+	      int *methodx, double *expect);
 
 void agfit_null(int   *n,      int   *method,   double *start, double *stop, 
 		int   *event,  double * offset,  double *weights,
@@ -95,22 +111,24 @@ void coxfit2(int   *maxiter,   int   *nusedx,    int   *nvarx,
 	     double *work,	double *eps,       double *tol_chol,
 	     double *sctest);
 
-void coxfit4_a(int *nusedx, int *nvarx, double *yy, 
-               double *covar2, double *offset2,
-               double *weights2, int *strata2,
-               double *means, double *beta, double *u, 
-               double *loglik, 
-               int *methodx, int *ptype2, int *pdiag2,
-               int *nfrail,  int *frail2, 
-	       void *expr1, void *expr2, void *Rrho);
+void coxfit5_a(int *nusedx, int *nvarx, double *yy, 
+	       double *covar2, double *offset2,
+	       double *weights2, int *strata,  int *sorted,
+	       double *means, double *beta, double *u, 
+	       double *loglik, 
+	       int *methodx, int *ptype2, int *pdiag2,
+	       int *nfrail,  int *frail2,
+	       void *fexpr1, void *fexpr2, void *rho
+    ) ;
+void coxfit5_b(int *maxiter, int *nusedx, int *nvarx, 
+	       int *strata, double *beta, double *u,
+	       double *imat2,  double *jmat2, double *loglik, 
+	       int *flag,  double *eps, double *tolerch, int *methodx, 
+	       int *nfrail, double *fbeta, double *fdiag,
+	       void *fexpr1, void *fexpr2, void *rho);
 
-void coxfit4_b(int *maxiter, int *nusedx, int *nvarx, 
-               double *beta, double *u,
-               double *imat2,  double *jmat2, double *loglik, 
-               int *flag,  double *eps, double *tolerch, int *methodx, 
-               int *nfrail, double *fbeta, double *fdiag);
-
-void coxfit4_c (int *nusedx, int *nvar, int *methodx, double *expect);
+void coxfit5_c (int *nusedx, int *nvar, int *strata, int *methodx, 
+		double *expect);
 
 void coxfit_null(int   *nusedx,    int   *method,   double *Time, 
 		 int   *status,    double *score,    double *weights, 
@@ -186,21 +204,27 @@ void survdiff2(int   *nn,     int   *nngroup,    int   *nstrat,
 	       double *exp,    double *var,        double *risk, 
 	       double *kaplan);
 
-void survfit2(int   *sn,     double *y,        int   *ny, 
-	      double *wt,     int   *strata,   int   *method, 
-	      int   *error,  double *mark,     double *surv,
-	      double *varh,   double *risksum,  int   *snsurv);
+void survfit2(int   *sn,      double *y,       double *wt,
+	      int   *strata,  int   *method,  int   *error, 
+	      double *mark,    double *surv,    double *varh, 
+	      double *risksum  );
 
-void survindex2(int   *n,     double *stime,   int   *strata, 
-		int   *ntime, double *Time,    int   *nstrat, 
-		int   *indx,  int   *indx2);
+void survindex2(int   *n,          double *stime,      int   *strata,
+		int   *ntime,      double *time,       int   *nstrat,
+		int   *o_n_risk,   int   *o_n_event,  double *o_surv,
+		double *o_std_err,  double *o_upper,    double *o_lower, 
+		int   *n_risk,     int   *n_event,    double *surv,
+		double *std_err,    double *upper,      double *lower,
+		double *new_start,  int   *num_extend, int   *times_strata,
+		double *temp_times);
 
 void survreg2(int   *maxiter,   int   *nx,    int   *nvarx, 
 	     double *y,          int   *ny,    double *covar2, double *wtx,
 	     double *offset2,    double *beta,  int   *nstratx, 
 	     int   *stratax,    double *ux,    double *imatx, 
 	     double *loglik,     int   *flag,  double *eps,
-	     double *tol_chol,   int   *dist,  int   *ddebug, void *placeholder1, void *placeholder2);
+	     double *tol_chol,   int   *dist,  int   *ddebug,
+	      void *placeholder1, void *placeholder2);
 
 void survreg4(int   *maxiter,   int   *nx,       int   *nvarx, 
 	      double *y,         int   *ny,       double *covar2, 
@@ -211,14 +235,15 @@ void survreg4(int   *maxiter,   int   *nx,       int   *nvarx,
 	     double *tol_chol,   int   *dist,     int   *ddebug,
              int *ptype2,  	 int   *pdiag2,
 	     int *nfrail2,      int   *frail2,   double *fdiag2,
-	     void *expr1, void *expr2, void *placeholder, void *Rrho);
+	     void *fexpr1, void *fexpr2, void *placeholder, void *rho);
 
 void survreg3(int   *maxiter,   int   *nx,    int   *nvarx, 
 	     double *y,          int   *ny,    double *covar2, double *wtx,
 	     double *offset2,    double *beta,  int   *nstratx, 
 	     int   *stratax,    double *ux,    double *imatx, 
 	     double *loglik,     int   *flag,  double *eps,
-	     double *tol_chol,   int   *dist,  int   *ddebug,void* density, void *envir);
+	     double *tol_chol,   int   *dist,  int   *ddebug,
+	      void* density, void *rho);
 
 void survreg5(int   *maxiter,   int   *nx,       int   *nvarx, 
 	      double *y,         int   *ny,       double *covar2, 
@@ -229,4 +254,4 @@ void survreg5(int   *maxiter,   int   *nx,       int   *nvarx,
 	     double *tol_chol,   int   *dist,     int   *ddebug,
              int *ptype2,  	 int   *pdiag2,
 	     int *nfrail2,      int   *frail2,   double *fdiag2,
-	      void *expr1, void *expr2, void *dens, void *Rrho );
+	      void *fexpr1, void *fexpr2, void *density, void *rho );

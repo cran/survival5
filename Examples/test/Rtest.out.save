@@ -1,6 +1,6 @@
 
 R : Copyright 2000, The R Development Core Team
-Version 1.0.0  (February 29, 2000)
+Version 1.2.0 Under development (unstable) (2000-11-11)
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
@@ -143,7 +143,7 @@ x
        x 
 1.472724 
 Warning message: 
-Ran out of iterations and did not converge in: fitter(X, Y, strats, offset, init = init, iter.max = iter.max,  
+Ran out of iterations and did not converge in: fitter(X, Y, strats, offset, init, control, weights = weights,  
 > coxph(Surv(time, status) ~x, test1, iter=3, method='breslow')$coef
        x 
 1.475284 
@@ -167,7 +167,7 @@ x 10.2     26980      116 0.0878 0.93
 
 Likelihood ratio test=2.77  on 1 df, p=0.0959  n=6 (1 observations deleted due to missing)
 Warning message: 
-Loglik converged before variable  1 ; beta may be infinite.  in: fitter(X, Y, strats, offset, init = init, iter.max = iter.max,  
+Loglik converged before variable  1 ; beta may be infinite.  in: fitter(X, Y, strats, offset, init, control, weights = weights,  
 > 
 > resid(fit0)
          1          2          3          4          5          6          7 
@@ -352,9 +352,7 @@ Likelihood ratio test=0.01  on 1 df, p=0.912  n= 10
 Call: survfit.coxph(object = fit)
 
        n   events     mean se(mean)   median  0.95LCL  0.95UCL 
-    2.00     7.00     4.77     2.16     3.00     2.00      Inf 
-Warning message: 
-no finite arguments to min/max; returning extreme. in: min(..., na.rm = na.rm) 
+   10.00     7.00     4.77     2.16     3.00     2.00      Inf 
 > summary(sfit)
 Call: survfit.coxph(object = fit)
 
@@ -377,12 +375,9 @@ Call: survfit.coxph(object = fit)
 > sfit
 Call: survfit.coxph(object = fitx, newdata = c(fitx$means[1], 0))
 
-     n events mean se(mean) median 0.95LCL 0.95UCL
-ss=0 2      7 4.77     2.16      3       2     Inf
-ss=1 2      7 4.77     2.16      3       2     Inf
-Warning messages: 
-1: no finite arguments to min/max; returning extreme. in: min(..., na.rm = na.rm) 
-2: no finite arguments to min/max; returning extreme. in: min(..., na.rm = na.rm) 
+      n events mean se(mean) median 0.95LCL 0.95UCL
+ss=0 10      7 4.77     2.16      3       2     Inf
+ss=1 10      7 4.77     2.16      3       2     Inf
 > summary(sfit)
 Call: survfit.coxph(object = fitx, newdata = c(fitx$means[1], 0))
 
@@ -620,9 +615,6 @@ Call: survfit(formula = Surv(aml$time, aml$status) ~ aml$x)
                      n events mean se(mean) median 0.95LCL 0.95UCL
 aml$x=Maintained    11      7 52.6    19.83     31      18     Inf
 aml$x=Nonmaintained 12     11 22.7     4.18     23       8     Inf
-Warning messages: 
-1: no finite arguments to min/max; returning extreme. in: min(..., na.rm = na.rm) 
-2: no finite arguments to min/max; returning extreme. in: min(..., na.rm = na.rm) 
 > summary(fit)
 Call: survfit(formula = Surv(aml$time, aml$status) ~ aml$x)
 
@@ -741,7 +733,7 @@ Likelihood ratio test=3.38  on 1 df, p=0.0658  n= 23
 > x2 <- coxph(Surv(rep(0,23),time, status) ~x, aml, method='efron')
 > x1$coef - x2$coef
 xNonmaintained 
-  1.110223e-16 
+ -1.110223e-16 
 > 
 > rm(x1, x2, atime, denom, deaths, chaz,cvar, tfit, sfit, temp, temp2, fit)
 > #
@@ -801,7 +793,7 @@ x2 -11.9  6.51e-06      167 -0.0715 0.94
 
 Likelihood ratio test=10.2  on 2 df, p=0.00625  n= 12 
 Warning message: 
-Loglik converged before variable 1 ,2; beta may be infinite.  in: fitter(X, Y, strats, offset, init = init, iter.max = iter.max,  
+Loglik converged before variable  1,2 ; beta may be infinite.  in: fitter(X, Y, strats, offset, init, control, weights = weights,  
 > # Create a "counting process" version of the simplest test data set
 > #
 > test1b<- list(start= c(0, 3,  0,  0, 5,  0, 6,14,  0,  0, 10,20,30, 0),
@@ -919,7 +911,7 @@ Call: survfit.coxph(object = fit)
 > fit0
 Call:
 coxph(formula = Surv(time, status) ~ x, data = testw1, weights = wt, 
-    iter.max = 0, method = "breslow")
+    method = "breslow", iter = 0)
 
 
   coef exp(coef) se(coef) z p
@@ -1023,7 +1015,7 @@ Likelihood ratio test=1.75  on 1 df, p=0.186  n= 9
 > fit0
 Call:
 coxph(formula = Surv(begin, time, status) ~ x, data = testw2, 
-    weights = wt, iter.max = 0, method = "breslow")
+    weights = wt, method = "breslow", iter = 0)
 
 
   coef exp(coef) se(coef) z p
@@ -1459,15 +1451,6 @@ rx=1 13      7  634     98.9    Inf     Inf     Inf
 rx=1 13      7  259     24.7    268     115     Inf
 rx=2 13      5  562     29.0    Inf     Inf     Inf
 rx=2 13      5  422      7.9    365     353     Inf
-Warning messages: 
-1: no finite arguments to min/max; returning extreme. in: min(..., na.rm = na.rm) 
-2: no finite arguments to min/max; returning extreme. in: min(..., na.rm = na.rm) 
-3: no finite arguments to min/max; returning extreme. in: min(..., na.rm = na.rm) 
-4: no finite arguments to min/max; returning extreme. in: min(..., na.rm = na.rm) 
-5: no finite arguments to min/max; returning extreme. in: min(..., na.rm = na.rm) 
-6: no finite arguments to min/max; returning extreme. in: min(..., na.rm = na.rm) 
-7: no finite arguments to min/max; returning extreme. in: min(..., na.rm = na.rm) 
-8: no finite arguments to min/max; returning extreme. in: min(..., na.rm = na.rm) 
 > summary(sfit)
 Call: survfit.coxph(object = fit, newdata = list(age = c(30, 70), ecog.ps = c(2, 
     3)))
@@ -1632,15 +1615,15 @@ coxph(formula = Surv(start, stop, event) ~ (age + surgery) *
 age                  0.0138     1.014   0.0181  0.763 0.45
 surgery             -0.5457     0.579   0.6109 -0.893 0.37
 transplant1          0.1181     1.125   0.3277  0.360 0.72
-age.transplant1      0.0348     1.035   0.0273  1.276 0.20
-surgery.transplant1 -0.2916     0.747   0.7582 -0.385 0.70
+age:transplant1      0.0348     1.035   0.0273  1.276 0.20
+surgery:transplant1 -0.2916     0.747   0.7582 -0.385 0.70
 
                     exp(coef) exp(-coef) lower .95 upper .95
 age                     1.014      0.986     0.979      1.05
 surgery                 0.579      1.726     0.175      1.92
 transplant1             1.125      0.889     0.592      2.14
-age.transplant1         1.035      0.966     0.982      1.09
-surgery.transplant1     0.747      1.339     0.169      3.30
+age:transplant1         1.035      0.966     0.982      1.09
+surgery:transplant1     0.747      1.339     0.169      3.30
 
 Rsquare= 0.07   (max possible= 0.969 )
 Likelihood ratio test= 12.4  on 5 df,   p=0.0291
@@ -1656,7 +1639,7 @@ coxph(formula = Surv(start, stop, event) ~ year * transplant,
                    coef exp(coef) se(coef)      z     p
 year             -0.265     0.767    0.105 -2.518 0.012
 transplant1      -0.282     0.754    0.514 -0.549 0.580
-year.transplant1  0.136     1.146    0.141  0.967 0.330
+year:transplant1  0.136     1.146    0.141  0.967 0.330
 
 Likelihood ratio test=8.61  on 3 df, p=0.0350  n= 172 
 > summary(sfit.3)
@@ -1670,15 +1653,15 @@ coxph(formula = Surv(start, stop, event) ~ (age + year) * transplant,
 age               0.0155     1.016   0.0173  0.895 0.3700
 year             -0.2735     0.761   0.1058 -2.585 0.0097
 transplant1      -0.5884     0.555   0.5427 -1.084 0.2800
-age.transplant1   0.0339     1.034   0.0279  1.211 0.2300
-year.transplant1  0.2013     1.223   0.1425  1.413 0.1600
+age:transplant1   0.0339     1.034   0.0279  1.211 0.2300
+year:transplant1  0.2013     1.223   0.1425  1.413 0.1600
 
                  exp(coef) exp(-coef) lower .95 upper .95
 age                  1.016      0.985     0.982     1.051
 year                 0.761      1.315     0.618     0.936
 transplant1          0.555      1.801     0.192     1.609
-age.transplant1      1.034      0.967     0.979     1.093
-year.transplant1     1.223      0.818     0.925     1.617
+age:transplant1      1.034      0.967     0.979     1.093
+year:transplant1     1.223      0.818     0.925     1.617
 
 Rsquare= 0.083   (max possible= 0.969 )
 Likelihood ratio test= 14.8  on 5 df,   p=0.0111
@@ -1695,8 +1678,8 @@ coxph(formula = Surv(start, stop, event) ~ (year + surgery) *
 year                -0.254     0.776    0.108 -2.356 0.018
 surgery             -0.236     0.790    0.628 -0.376 0.710
 transplant1         -0.292     0.747    0.506 -0.577 0.560
-year.transplant1     0.164     1.179    0.142  1.162 0.250
-surgery.transplant1 -0.550     0.577    0.776 -0.709 0.480
+year:transplant1     0.164     1.179    0.142  1.162 0.250
+surgery:transplant1 -0.550     0.577    0.776 -0.709 0.480
 
 Likelihood ratio test=12.3  on 5 df, p=0.0303  n= 172 
 > sfit.5
@@ -1710,8 +1693,8 @@ age                  0.0150     1.015   0.0176  0.851 0.390
 surgery             -0.4192     0.658   0.6157 -0.681 0.500
 transplant1          0.0772     1.080   0.3316  0.233 0.820
 year                -0.1363     0.873   0.0710 -1.921 0.055
-age.transplant1      0.0270     1.027   0.0271  0.995 0.320
-surgery.transplant1 -0.2981     0.742   0.7580 -0.393 0.690
+age:transplant1      0.0270     1.027   0.0271  0.995 0.320
+surgery:transplant1 -0.2981     0.742   0.7580 -0.393 0.690
 
 Likelihood ratio test=16.2  on 6 df, p=0.0127  n= 172 
 > sfit.6
@@ -1725,7 +1708,7 @@ age              0.0152     1.015   0.0175  0.870 0.380
 transplant1      0.0475     1.049   0.3222  0.147 0.880
 surgery         -0.6212     0.537   0.3679 -1.689 0.091
 year            -0.1361     0.873   0.0709 -1.919 0.055
-age.transplant1  0.0271     1.027   0.0271  0.998 0.320
+age:transplant1  0.0271     1.027   0.0271  0.998 0.320
 
 Likelihood ratio test=16.1  on 5 df, p=0.00667  n= 172 
 > 
@@ -1893,7 +1876,7 @@ Call: survfit.coxph(object = sfit.1, newdata = data, individual = T)
 + 			rep(age,2)*strata(ss) + I(rep(age,2)^2*ss) )
 > fit$coef[1] - fit3$coef
  rep(age, 2) 
-1.040834e-17 
+3.469447e-18 
 > s4 <- survfit(fit, c(fit3$means, 0,0))
 > all.equal(s4$surv[1:(s4$strata[1])],  s3$surv)
 [1] TRUE
@@ -2124,15 +2107,15 @@ coxph(formula = Surv(stop, event) ~ (rx + size + number) * strata(enum) +
 rx                        -0.5176     0.596    0.316    0.3075 -1.683 0.0920
 size                       0.0679     1.070    0.101    0.0853  0.796 0.4300
 number                     0.2360     1.266    0.076    0.0721  3.275 0.0011
-rx.strata(enum)enum=2     -0.1019     0.903    0.504    0.3265 -0.312 0.7600
-rx.strata(enum)enum=3     -0.1823     0.833    0.558    0.3916 -0.465 0.6400
-rx.strata(enum)enum=4     -0.1328     0.876    0.658    0.4968 -0.267 0.7900
-size.strata(enum)enum=2   -0.1440     0.866    0.168    0.1119 -1.287 0.2000
-size.strata(enum)enum=3   -0.2792     0.756    0.209    0.1511 -1.847 0.0650
-size.strata(enum)enum=4   -0.2708     0.763    0.251    0.1856 -1.459 0.1400
-number.strata(enum)enum=2 -0.0985     0.906    0.119    0.1144 -0.861 0.3900
-number.strata(enum)enum=3 -0.0662     0.936    0.130    0.1167 -0.567 0.5700
-number.strata(enum)enum=4  0.0930     1.098    0.147    0.1175  0.792 0.4300
+rx:strata(enum)enum=2     -0.1019     0.903    0.504    0.3265 -0.312 0.7600
+rx:strata(enum)enum=3     -0.1823     0.833    0.558    0.3916 -0.465 0.6400
+rx:strata(enum)enum=4     -0.1328     0.876    0.658    0.4968 -0.267 0.7900
+size:strata(enum)enum=2   -0.1440     0.866    0.168    0.1119 -1.287 0.2000
+size:strata(enum)enum=3   -0.2792     0.756    0.209    0.1511 -1.847 0.0650
+size:strata(enum)enum=4   -0.2708     0.763    0.251    0.1856 -1.459 0.1400
+number:strata(enum)enum=2 -0.0985     0.906    0.119    0.1144 -0.861 0.3900
+number:strata(enum)enum=3 -0.0662     0.936    0.130    0.1167 -0.567 0.5700
+number:strata(enum)enum=4  0.0930     1.098    0.147    0.1175  0.792 0.4300
 
 Likelihood ratio test=29.4  on 12 df, p=0.00344  n= 340 
 > 
@@ -2704,7 +2687,7 @@ X matrix deemed to be singular; variable 2 3 4 in: coxph(Surv(start, stop, statu
 > fit1$coef    # elements 2:4 should be NA
                x   factor(epoch)2   factor(epoch)3   factor(epoch)4 
        0.1041579               NA               NA               NA 
-x.factor(epoch)2 x.factor(epoch)3 x.factor(epoch)4 
+x:factor(epoch)2 x:factor(epoch)3 x:factor(epoch)4 
        1.5726937        1.5726937        1.5726937 
 > #
 > # Test some more features of surv.diff

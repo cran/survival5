@@ -1,4 +1,4 @@
-# SCCS @(#)survfit.coxph.null.s	5.3 11/04/98
+# SCCS @(#)survfit.coxph.null.s	5.5 07/09/00
 survfit.coxph.null <-
   function(object, newdata, se.fit=T, conf.int=.95, individual=F,
 	    type, vartype,
@@ -35,6 +35,7 @@ survfit.coxph.null <-
 	if (is.null(stratx)) {
 	    temp <- untangle.specials(Terms, 'strata', 1)
 	    stratx <- strata(m[temp$vars])
+	    strata.all <- table(stratx)
 	    }
 	if (is.null(y)) y <- model.extract(m, 'response')
 	}
@@ -80,26 +81,25 @@ survfit.coxph.null <-
 			  double(2),
 			  as.integer(1),
 			  double(1),
-			  newrisk= as.double(1),
-                    PACKAGE="survival5")
+			  newrisk= as.double(1), PACKAGE="survival5")
     nsurv <- surv$nsurv[1]
     ntime <- 1:nsurv
     tsurv <- surv$surv[ntime]
     tvar  <- surv$varhaz[ntime]
     if (surv$strata[1] <=1)
-	temp _ list(time=surv$y[ntime,1],
+	temp _ list(n=n, time=surv$y[ntime,1],
 		 n.risk=surv$y[ntime,2],
 		 n.event=surv$y[ntime,3],
-		 surv=tsurv )
+		 surv=tsurv, type=type )
     else {
 	temp <- surv$strata[1:(1+surv$strata[1])]
 	tstrat <- diff(c(0, temp[-1])) #n in each strata
 	names(tstrat) <- levels(stratx)
-	temp _ list(time=surv$y[ntime,1],
+	temp _ list(n=n, time=surv$y[ntime,1],
 		 n.risk=surv$y[ntime,2],
 		 n.event=surv$y[ntime,3],
 		 surv=tsurv,
-		 strata= tstrat)
+		 strata= tstrat, strata.all=strata.all, type=type)
 	}
     if (se.fit) temp$std.err <- sqrt(tvar)
 
@@ -132,3 +132,12 @@ survfit.coxph.null <-
     class(temp) <- c('survfit.cox', 'survfit')
     temp
     }
+
+
+
+
+
+
+
+
+

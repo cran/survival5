@@ -12,6 +12,10 @@
         t5: \tab T5 mismatch score\cr
      }
  }
-\seealso{\code{\link{predict.survreg}}}
+\description{This contains the Stanford Heart Transplant data in
+a different format. The main data set is in \code{\link{heart}}}
+
+\seealso{\code{\link{predict.survreg}},\code{\link{heart}}}
 \source{Escobar & Meeker, Biometrics 1992 p519}
 \keyword{datasets}
+\keyword{survival}

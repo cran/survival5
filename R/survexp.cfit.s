@@ -85,8 +85,7 @@ survexp.cfit <- function(x, y, death, individual, cox, se.fit, method) {
 			  surv = matrix(0.0, npt, ncurve),
 			  varhaz = matrix(0.0, npt, ncurve),
 			  nrisk  = matrix(0.0, npt, ncurve),
-			  as.integer(method),
-                    PACKAGE="survival5")
+			  as.integer(method), PACKAGE="survival5")
 
     surv <- apply(xxx$surv, 2, cumprod)
     if (se.fit)

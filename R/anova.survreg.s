@@ -45,7 +45,8 @@ anova.survreg <- function(object, ..., test = c("Chisq", "none")) {
     aod <- data.frame(Df = df, Deviance = dev, "Resid. Df" = df.res, 
 		      "-2*LL" = loglik, row.names = c("NULL", term.labels), 
 		      check.names = F)
-    aod<-structure(aod, heading = title, class = c("anova", "data.frame"))
+    attr(aod, "heading") <- heading
+    class(aod) <- c("anova", "data.frame")
     if(test == "none")
 	    return(aod)
     else stat.anova(aod, test, n = nrow(y))

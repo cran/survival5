@@ -1,3 +1,4 @@
+#  SCCS  @(#)model.frame.coxph.s	4.4 02/21/99
 model.frame.coxph <- function(object, ...) {
     Call <- object$call
     Call[[1]] <- as.name("model.frame")

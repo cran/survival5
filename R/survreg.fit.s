@@ -1,9 +1,10 @@
 # 
-#  SCCS @(#)survreg.fit.s	5.9 02/08/99
+#  SCCS @(#)survreg.fit.s	5.10 07/10/00
 #
 survreg.fit<- function(x, y, weights, offset, init, controlvals, dist, 
 		       scale=0, nstrat=1, strata, parms=NULL) {
 
+    controlvals<-do.call("survreg.control",controlvals)
     iter.max <- controlvals$iter.max
     eps <- controlvals$rel.tol
     toler.chol <- controlvals$toler.chol
@@ -24,9 +25,9 @@ survreg.fit<- function(x, y, weights, offset, init, controlvals, dist,
 	    stop("Invalid strata variable")
     if (nstrat==1) strata <- rep(1,n)
     if (scale >0)
-      nstrat2 <- 0
+        nstrat2 <- 0
     else
-      nstrat2 <- nstrat
+        nstrat2 <- nstrat
 
     if (is.character(dist)) {
 	sd <- survreg.distributions[[dist]]
@@ -42,26 +43,30 @@ survreg.fit<- function(x, y, weights, offset, init, controlvals, dist,
 	fitter <- 'survreg3'
 	#Set up the callback for the sparse frailty term
 	n2 <- n + sum(y[,ny]==3)
-	expr1 <- expression({
-	    z <- survlist$z
+	f.expr1 <- function(z){
+            
 	    if (length(parms)) temp <- sd$density(z, parms)
 	    else               temp <- sd$density(z)
 	    
 	    if (!is.matrix(temp) || any(dim(temp) != c(n2,5)))
 		    stop("Density function returned an invalid matrix")
-	    survlist$density <- as.vector(as.double(temp))
-	    survlist})
+	    list(z=z,density=as.vector(as.double(temp)))}
+        
 	survlist <- list(z=double(n2), density=double(n2*5))
-	.C("init_survcall", as.integer(sys.nframe()), expr1,
-                    PACKAGE="survival5")
+	###.C("init_survcall", expr1,PACKAGE="survival5")
 	}
-    else fitter <- 'survreg2'
-
+    else {
+        fitter <- 'survreg2'
+        f.expr1<-function(z) NULL
+    }
+    ##
+    ## environment for callbacks
+    rho<-environment()
     # This is a subset of residuals.survreg: define the first and second
     #   derivatives at z=0 for the 4 censoring types
     #   Used below for starting estimates
     derfun <- function(y, eta, sigma, density, parms) {
-	ny <<- ncol(y)
+	ny <- ncol(y)
 	status <- y[,ny]
 	z <- (y[,1] - eta)/sigma
 	dmat <- density(z,parms)
@@ -121,7 +126,7 @@ survreg.fit<- function(x, y, weights, offset, init, controlvals, dist,
 		       as.integer(1),
 		       as.double(y),
 		       as.integer(ny),
-		       rep(1.0, n),
+		       as.double(rep(1.0, n)),
 		       as.double(weights),
 		       as.double(offset),
 		       coef= as.double(coef),
@@ -135,7 +140,8 @@ survreg.fit<- function(x, y, weights, offset, init, controlvals, dist,
 		       as.double(toler.chol), 
 		       as.integer(dnum),
 		       debug = as.integer(floor(debug/2)),
-                    PACKAGE="survival5")
+                       Rexpr=f.expr1, Renv=rho,
+                   PACKAGE="survival5")
 	}
 
     #
@@ -186,8 +192,9 @@ survreg.fit<- function(x, y, weights, offset, init, controlvals, dist,
 		   as.double(eps),
 	           as.double(toler.chol), 
 		   as.integer(dnum),
-	           debug = as.integer(debug),
-                    PACKAGE="survival5")
+                   debug = as.integer(debug),
+              Rexpr=f.expr1, Renv=rho,
+              PACKAGE="survival5")
 
     if (debug>0) browser()
     if (iter.max >1 && fit$flag > nvar2) {

@@ -1,46 +1,53 @@
-# SCCS @(#)coxpenal.fit.s	1.4 11/30/98
+# SCCS @(#)coxpenal.fit.s	1.8 06/12/00
 #
 # General penalized likelihood
 #
-coxpenal.fit <- function(x, y, strata, offset, init, iter.max, outer.max,
-			eps,  toler.chol, weights, method, rownames, 
-			pcols, pattr, assign,debug=F)
-    {
+coxpenal.fit <- function(x, y, strata, offset, init, control,
+			weights, method, rownames, 
+			pcols, pattr, assign) {
+    eps <- control$eps
     n <-  nrow(y)
     if (is.matrix(x)) nvar <- ncol(x)
     else  if (length(x)==0) stop("Must have an X variable")
     else nvar <-1
 
-    # Sort the data (or rather, get a list of sorted indices)
-    if (ncol(y) ==3) {
-	if (length(strata) ==0) sorted <- order(y[,2], -y[,3])
-	else sorted <- order(strata, y[,2],  -y[,3])
-	sstat <- y[sorted,3]
-	andersen <- T
-	routines <- paste('agfit4', c('a', 'b', 'c'), sep='_')
-        }
-    else {
-	if (length(strata) ==0) sorted <- order(y[,1])
-	else sorted <- order(strata, y[,1])
-	sstat <- y[sorted,2]
-	andersen <- F
-	routines <- paste('coxfit4', c('a', 'b', 'c'), sep='_')
-        }
-
-    if (length(strata)==0) newstrat <- as.integer(rep(0,n))
-    else {
-	strata <- (as.numeric(strata))[sorted]
-	newstrat <- as.integer(c(1*(diff(strata)!=0), 1))
-	}
     if (missing(offset) || is.null(offset)) offset <- rep(0,n)
     if (missing(weights)|| is.null(weights))weights<- rep(1,n)
     else {
 	if (any(weights<=0)) stop("Invalid weights, must be >0")
-	weights <- weights[sorted]
 	}
 
-    sy <- as.double(y[sorted,])
-    offsort <- offset[sorted]
+    # Get the list of sort indices, but don't sort the data itself
+    if (ncol(y) ==3) {
+	if (length(strata) ==0) {
+	    sorted <- cbind(order(-y[,2], y[,3]), 
+			    order(-y[,1]))
+	    newstrat <- n
+	    }
+	else {
+	    sorted <- cbind(order(strata, -y[,2], y[,3]),
+			    order(strata, -y[,1]))
+	    newstrat  <- cumsum(table(strata))
+	    }
+	status <- y[,3]
+	andersen <- T
+	routines <- paste('agfit5', c('a', 'b', 'c'), sep='_')
+        }
+    else {
+	if (length(strata) ==0) {
+	    sorted <- order(-y[,1], y[,2])
+	    newstrat <- n
+	    }
+	else {
+	    sorted <- order(strata, -y[,1], y[,2])
+	    strata <- (as.numeric(strata))[sorted]
+	    newstrat <-  cumsum(table(strata))
+	    }
+	status <- y[,2]
+	andersen <- F
+	routines <- paste('coxfit5', c('a', 'b', 'c'), sep='_')
+        }
+
     n.eff <- sum(y[,ncol(y)])  #effective n for a Cox model is #events
     #
     # are there any sparse frailty terms?
@@ -62,8 +69,8 @@ coxpenal.fit <- function(x, y, strata, offset, init, iter.max, outer.max,
     # To make some downstream things easier, order pcols and pattr to be
     #   in the same relative order as the terms in 'assign' 
     #
-    ## Can't compute assign attribute in R without terms
-    ##if (missing(assign)) assign <- attr(x, 'assign')[-1]   #Remove 'intercept'
+    ## can't compute assign attribute in R without terms
+    ## if (missing(assign)) assign <- attr(x, 'assign')[-1]   #Remove 'intercept'
     pterms <- rep(0, length(assign))
     names(pterms) <- names(assign)
     pindex <- rep(0, npenal)
@@ -86,10 +93,11 @@ coxpenal.fit <- function(x, y, strata, offset, init, iter.max, outer.max,
     # ptype= 1 or 3 if a sparse term exists, 2 or 3 if a non-sparse exists
     ptype <- any(sparse) + 2*(any(!sparse))
 
-    ## Make sure these get defined
+    ## Make sure these get defined <TSL>
     f.expr1<-function(coef) NULL
     f.expr2<-function(coef) NULL
-   
+
+
     if (any(sparse)) {
 	sparse.attr <- (pattr[sparse])[[1]]  #can't use [[sparse]] directly
 	                                     # if 'sparse' is a T/F vector
@@ -97,7 +105,7 @@ coxpenal.fit <- function(x, y, strata, offset, init, iter.max, outer.max,
 	if (length(fcol) > 1) stop("Sparse term must be single column")
 
 	# Remove the sparse term from the X matrix
-	xx <- x[sorted, -fcol, drop=F]
+	xx <- x[, -fcol, drop=F]
 	for (i in 1:length(assign)){
 	    j <- assign[[i]]
 	    if (j[1] > fcol) assign[[i]] <- j-1
@@ -107,20 +115,21 @@ coxpenal.fit <- function(x, y, strata, offset, init, iter.max, outer.max,
 	    if (j[1] > fcol) pcol[[i]] <- j-1
 	    }
 
-	frailx <- x[sorted, fcol]
+	frailx <- x[, fcol]
 	frailx <- match(frailx, sort(unique(frailx)))
 	nfrail <- max(frailx)
 	nvar <- nvar - 1
 
 	#Set up the callback for the sparse frailty term
 	pfun1 <- sparse.attr$pfun
-	f.expr1 <-function(coef){
-            #coef <- coxlist1$coef
+        ### In R we use a function and eval() it, not an expression
+	f.expr1 <- function(coef){
+	    coxlist1$coef <- coef 
 	    if (is.null(extra1)) temp <- pfun1(coef, theta1, n.eff)
 	    else  temp <- pfun1(coef, theta1, n.eff, extra1)
 
 	    if (!is.null(temp$recenter)) 
-		    coxlist1$coef <- coef - as.double(temp$recenter)
+		    coxlist1$coef <- coxlist1$coef - as.double(temp$recenter)
 	    if (!temp$flag) {
 		coxlist1$first <- -as.double(temp$first)
 		coxlist1$second <- as.double(temp$second)
@@ -130,14 +139,16 @@ coxpenal.fit <- function(x, y, strata, offset, init, iter.max, outer.max,
 	    if (any(sapply(coxlist1, length) != c(rep(nfrail,3), 1, 1)))
 		    stop("Incorrect length in coxlist1")
 	    coxlist1
-          }
-        if (debug) debug(f.expr1)
+        }
+        if (!is.null(getOption("survdebug"))) debug(f.expr1)
+        
 	coxlist1 <- list(coef=double(nfrail), first=double(nfrail), 
 			 second=double(nfrail), penalty=0.0, flag=F)
-	###.C("init_coxcall1", as.integer(sys.nframe()), expr1)
+        ## we pass f.expr1 in as an argument in R
+	##.C("init_coxcall1", as.integer(sys.nframe()), expr1)
     }
     else {
-	xx <- x[sorted,,drop=F]
+	xx <- x
 	frailx <- 0
 	nfrail <- 0
 	}
@@ -147,8 +158,8 @@ coxpenal.fit <- function(x, y, strata, offset, init, iter.max, outer.max,
 	full.imat <- !all(unlist(lapply(pattr, function(x) x$diag)))
 	ipenal <- (1:length(pattr))[!sparse]   #index for non-sparse terms
 	f.expr2 <- function(coef){
-            coxlist2$coef<-coef
-            pentot <- 0
+            coxlist2$coef<-coef ##<TSL>
+	    pentot <- 0
 	    for (i in ipenal) {
 		pen.col <- pcols[[i]]
 		coef <- coxlist2$coef[pen.col]
@@ -176,8 +187,9 @@ coxpenal.fit <- function(x, y, strata, offset, init, iter.max, outer.max,
 	    if (any(sapply(coxlist2, length) != length2)) 
 		    stop("Length error in coxlist2")
 	    coxlist2
-          }
-        if (debug) debug(f.expr2)
+        }
+        if (!is.null(getOption("survdebug")))
+            debug(f.expr2)
 	if (full.imat) {
 	    coxlist2 <- list(coef=double(nvar), first=double(nvar), 
 		    second= double(nvar*nvar), penalty=0.0, flag=rep(F,nvar))
@@ -188,8 +200,9 @@ coxpenal.fit <- function(x, y, strata, offset, init, iter.max, outer.max,
 		    second=double(nvar), penalty= 0.0, flag=rep(F,nvar))
 	    length2 <- c(nvar, nvar, nvar, 1, nvar)
 	    }
-	###.C("init_coxcall2", as.integer(sys.nframe()), expr2)
-       }
+        ## in R, f.expr2 is passed as an argument later
+	##.C("init_coxcall2", as.integer(sys.nframe()), expr2)
+        }
     else full.imat <- F
 
     #
@@ -234,13 +247,13 @@ coxpenal.fit <- function(x, y, strata, offset, init, iter.max, outer.max,
     #
     # Manufacture the list of calls to cfun, with appropriate arguments
     #
-
-
+    ## Amazingly, all this works in R, so I don't need to understand it.
+    ##
     temp1 <- c('x', 'coef', 'plik', 'loglik', 'status', 'neff', 'df', 'trH')
-    temp2 <- c('frailx', 'coxfit$fcoef', 'loglik1',  'coxfit$loglik', 'sstat',
+    temp2 <- c('frailx', 'coxfit$fcoef', 'loglik1',  'coxfit$loglik', 'status',
 	       'n.eff')
     temp3 <- c('xx[,pen.col]', 'coxfit$coef[pen.col]','loglik1',
-	       'coxfit$loglik', 'sstat', 'n.eff')
+	       'coxfit$loglik', 'status', 'n.eff')
     calls <- vector('expression', length(cfun))
     cargs <- lapply(pattr, function(x) x$cargs)
     for (i in 1:length(cfun)) {
@@ -271,28 +284,34 @@ coxpenal.fit <- function(x, y, strata, offset, init, iter.max, outer.max,
 		varnames[pcols[[i]]] <- pattr[[i]]$varname
         }
 
+    ## need the current environment for callbacks
+    rho<-environment()
+    
     #
     # Have C store the data, and get the loglik for beta=initial, frailty=0
     #
     coxfit <- .C(routines[1],
-                       n=as.integer(n),
-                       nvar=as.integer(nvar), 
-                       sy=sy,
-                       x= xx ,
-                       offset=as.double(offsort - mean(offset)),
-                       weights=as.double(weights),
-                       strata=newstrat,
+                       as.integer(n),
+                       as.integer(nvar), 
+                       as.double(y),
+                       x= as.double(xx) ,
+                       as.double(offset - mean(offset)),
+                       as.double(weights),
+		       as.integer(newstrat),
+		       as.integer(sorted-1),
                        means= double(nvar),
                        coef= as.double(init),
                        u = double(nvar),
 		       loglik=double(1),
-		       method=as.integer(method=='efron'),
-		       ptype=as.integer(ptype),
-		       full.imat=as.integer(full.imat),
-		       nfrail=as.integer(nfrail),
-		       frailx=as.integer(frailx),fn1=f.expr1,fn2=f.expr2,
-                       rho=environment(),
-                    PACKAGE="survival5")
+		       as.integer(method=='efron'),
+		       as.integer(ptype),
+		       as.integer(full.imat),
+		       as.integer(nfrail),
+		       as.integer(frailx),
+                 #R callback additions
+                 f.expr1,f.expr2,rho,
+                 PACKAGE="survival5"
+                 )
     loglik0 <- coxfit$loglik
     means   <- coxfit$means
 
@@ -302,28 +321,32 @@ coxpenal.fit <- function(x, y, strata, offset, init, iter.max, outer.max,
     iter2 <- 0
     iterfail <- NULL
     thetasave <- unlist(thetalist)
-    for (outer in 1:outer.max) {
+    for (outer in 1:control$outer.max) {
         coxfit <- .C(routines[2], 
-		        iter=as.integer(iter.max),
+		        iter=as.integer(control$iter.max),
 			as.integer(n),
 			as.integer(nvar),
+		        as.integer(newstrat),
 			coef = as.double(init),
 		        u    = double(nvar+nfrail),
 			hmat = double(nvar*(nvar+nfrail)),
 			hinv = double(nvar*(nvar+nfrail)),
 			loglik = double(1),
 			flag = integer(1),
-			as.double(eps),
-		        as.double(toler.chol),
+			as.double(control$eps),
+		        as.double(control$toler.chol),
 			as.integer(method=='efron'),
 			as.integer(nfrail),
 		        fcoef = as.double(finit),
 			fdiag = double(nfrail+nvar),
-                    PACKAGE="survival5")
+                     ## R additions
+                     f.expr1,f.expr2,rho,
+                     PACKAGE="survival5"
+                     )
 
 	iter <- outer
 	iter2 <- iter2 + coxfit$iter
-	if (coxfit$iter >=iter.max) iterfail <- c(iterfail, iter)
+	if (coxfit$iter >=control$iter.max) iterfail <- c(iterfail, iter)
 
 	# If any penalties were infinite, the C code has made fdiag=1 out
 	#  of self-preservation (0 divides).  But such coefs are guarranteed
@@ -380,7 +403,8 @@ coxpenal.fit <- function(x, y, strata, offset, init, iter.max, outer.max,
 	    thetasave <- cbind(thetasave, unlist(thetalist))
 	    }
 	else {
-	    temp <- unlist(thetalist)
+	    # the "as.vector" removes names, dodging a bug in Splus5.1
+	    temp <- as.vector(unlist(thetalist))
 	    coefsave <- cbind(coefsave, coxfit$coef)
 	    fsave    <- cbind(fsave, coxfit$fcoef)
 	    # temp = next guess for theta
@@ -396,10 +420,10 @@ coxpenal.fit <- function(x, y, strata, offset, init, iter.max, outer.max,
 
     # release the memory
     expect <- .C(routines[3], as.integer(n),
-                 as.integer(nvar),
-                 as.integer(method=='efron'),
-                 expect= double(n),
-                 PACKAGE="survival5")$expect
+		             as.integer(nvar),
+		             as.integer(newstrat),
+		             as.integer(method=='efron'),
+		             expect= double(n),PACKAGE="survival5")$expect
 
     if (!need.df) {  #didn't need it iteration by iteration, but do it now
         #get the penalty portion of the second derive matrix
@@ -418,17 +442,16 @@ coxpenal.fit <- function(x, y, strata, offset, init, iter.max, outer.max,
 	var2  <- dftemp$var2
         }
 
-    if (iter.max >1 && length(iterfail)>0)
+    if (control$iter.max >1 && length(iterfail)>0)
 	    warning(paste("Inner loop failed to coverge for iterations", 
 			  paste(iterfail, collapse=' ')))
-    ###which.sing <- (fdiag[nfrail + 1:nvar] ==0)
-    which.sing <- (fdiag[seq(nfrail+1,length=nvar)] ==0)
+    which.sing <- (fdiag[nfrail + 1:nvar] ==0)
     
     coef <- coxfit$coef
     names(coef) <- varnames
     coef[which.sing] <- NA
     resid <- double(n)
-    resid[sorted] <-sstat - expect
+    resid <- status - expect
     names(resid) <- rownames
 
     names(iterlist) <- names(pterms[pterms>0])

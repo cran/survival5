@@ -58,14 +58,12 @@ coxph.detail <-  function(object) {
 			  means= c(method=='efron', double(ndeath*nvar)),
 			  u = double(ndeath*nvar),
 			  i = double(ndeath*nvar*nvar),
-			  double(nvar*(3 + 2*nvar)),
-                    PACKAGE="survival5" )
+			  double(nvar*(3 + 2*nvar)) )
     keep <- 1:ff$ndeath
     vname<- dimnames(x)[[2]]
     time <- y[ff$index[keep],2]
     names(time) <- NULL
-    ### ff$means is one element too long
-    means<- (matrix(ff$means[-ndeath*nvar],ndeath, nvar))[keep,]
+    means<- (matrix(ff$means,ndeath, nvar))[keep,]
     score<-  matrix(ff$u, ndeath, nvar)[keep,]
     var <- array(ff$i, c(nvar, nvar, ndeath))[,,keep]
     if (nvar>1) {

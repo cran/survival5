@@ -29,7 +29,7 @@ coxph.wtest <- function(var, b, toler.chol=1e-9) {
                               tests= as.double(b),
                               solve= double(nvar*ntest),
 	                      as.double(toler.chol),
-                    PACKAGE="survival5")
+               PACKAGE="survival5")
     if (ntest==1) list(test=temp$tests[1], df=temp$df, solve=temp$solve)
     else          list(test=temp$tests[1:ntest], df=temp$df, 
                        solve=matrix(temp$solve, nvar, ntest))

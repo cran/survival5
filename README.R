@@ -1,7 +1,9 @@
-This is an R port of survival5
+This is an R port of survival5.1; the author, Terry Therneau, provided the
+same code to MathSoft for version 6 of S-PLUS(tm) so it should be
+compatible.
 
-It requires version 1.0 or later of R and you will probably want to
-install the date package. 
+It requires version 1.0 or later of R (you are strongly encouraged to be
+using 1.1.1) and you will probably want to install the date package.
 
 The main new feature since survival4 is penalised (partial) likelihood.
 Both survreg() and coxph() can now fit frailty models, smoothing splines,
@@ -20,7 +22,6 @@ loaded as part of the library, since they take up 22000 heap elements and
 a separate package. They no longer autoload -- you must explicitly do
 data(ratetables).
 
-Another minor change is that predict(,type="terms") now works in R.
 
 
 

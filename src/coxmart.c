@@ -1,4 +1,5 @@
 /*  SCCS @(#)coxmart.c	5.2 10/27/98
+/*
 ** Compute the martingale residual for a Cox model
 **
 ** Input
@@ -21,13 +22,13 @@
 #include "survproto.h"
 
 void coxmart(int   *sn,     int   *method,    double *time, 
-	     int   *status, int   * strata,   double *score, 
+	     int   *status, int   *strata,   double *score, 
 	     double *wt,     double *expect)
     {
     register int i,j;
     int lastone;
     int n;
-    double deaths, denom=0, e_denom; /*-Wall*/
+    double deaths, denom, e_denom;
     double hazard;
     double temp, wtsum;
     double downwt;

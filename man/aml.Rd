@@ -4,6 +4,7 @@
 \title{Acute Myelogenous Leukemia survival data}
 \usage{data(aml)
 data(leukemia)}
+\description{Survival in patients with Acute Myelogenous Leukemia}
 \format{
     \tabular{ll}{
 	time:\tab survival or censoring time\cr

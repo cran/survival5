@@ -1,5 +1,7 @@
 \name{is.ratetable}
 \alias{is.ratetable}
+\alias{Math.ratetable}
+\alias{Ops.ratetable}
 \title{
 Verify that an Object is of Class `ratetable'
 }

@@ -1,5 +1,6 @@
 \name{summary.survfit}
 \alias{summary.survfit}
+\alias{print.summary.survfit}
 \title{
 Summary of a Survival Curve
 }

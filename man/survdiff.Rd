@@ -1,5 +1,6 @@
 \name{survdiff}
 \alias{survdiff}
+\alias{survdiff.fit}
 \title{
 Test Survival Curve Differences
 }

@@ -1,6 +1,6 @@
-# SCCS @(#)survexp.s	5.1 08/30/98
+# SCCS @(#)survexp.s	5.2 02/19/99
 
-survexp <- function(formula=formula(data), data=sys.frame(sys.parent()),
+survexp <- function(formula=formula(data), data=parent.frame(),
 	weights, subset, na.action,
 	times,  cohort=T,  conditional=F,
 	ratetable=survexp.us, scale=1, npoints, se.fit,
@@ -37,12 +37,12 @@ survexp <- function(formula=formula(data), data=sys.frame(sys.parent()),
 			  paste( varlist, "=", varlist, collapse = ","), ")"))
 	Terms <- if (missing(data)) terms(formula, "ratetable")
 	         else               terms(formula, "ratetable", data = data)
-        rate <- attr(Terms, "specials")$ratetable
+	rate <- attr(Terms, "specials")$ratetable
 	}
 
     m$formula <- Terms
     m[[1]] <- as.name("model.frame")
-    m <- eval(m, sys.frame(sys.parent()))
+    m <- eval(m, parent.frame())
     n <- nrow(m)
 
     if (any(attr(Terms, 'order') >1))
@@ -72,7 +72,7 @@ survexp <- function(formula=formula(data), data=sys.frame(sys.parent()),
 
     if (no.Y) ovars <- attr(Terms, 'term.labels')[-rate]
     else      ovars <- attr(Terms, 'term.labels')[-(rate-1)]
-
+	
     if (is.ratetable(ratetable)) {
 	israte <- T
 	if (no.Y) {
@@ -151,7 +151,7 @@ survexp <- function(formula=formula(data), data=sys.frame(sys.parent()),
 					  as.integer(1),
 					  indx = integer(length(times)),
 					  indx2= integer(length(times)),
-                    PACKAGE="survival5" )
+                            PACKAGE="survival5")
 		keep <- temp2$indx[temp2$indx>0]
 		}
 

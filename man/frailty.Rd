@@ -3,6 +3,12 @@
 \alias{frailty.gamma}
 \alias{frailty.gaussian}
 \alias{frailty.t}
+\alias{frailty.brent}
+\alias{frailty.controlaic}
+\alias{frailty.controldf}
+\alias{frailty.controlgam}
+\alias{frailty.controlgauss}
+\alias{frailty.gammacon}
 %- Also NEED an `\alias' for EACH other topic documented here.
 \title{(Approximate) Frailty models}
 \usage{

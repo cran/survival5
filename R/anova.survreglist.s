@@ -49,7 +49,7 @@ anova.survreglist <- function(object, ..., test = c("Chisq", "none")) {
 		      Df = c(NA, ddf), 
 		      Deviance = c(NA, dm2loglik), check.names = F)
     ##aod <- as.anova(aod, heading)
-    aod<-structure(aod, heading = title, class = c("anova", "data.frame"))
+    aod<-structure(aod,heading=heading,class=c("anova","data.frame"))
     if(test != "none") {
 	n <- length(object[[1]]$residuals)
 	o <- order(dfres)

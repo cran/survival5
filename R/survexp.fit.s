@@ -48,7 +48,7 @@ survexp.fit <- function(x, y, times, death, ratetable) {
 		    as.double(times),
 		    surv = double(ntime * ngrp),
 		    n   = integer(ntime *ngrp),
-                    PACKAGE="survival5")
+               PACKAGE="survival5")
     if (ntime==1) list(surv=temp$surv, n=temp$n)
     else if (ngrp >1)
 	 list(surv=apply(matrix(temp$surv, ntime, ngrp),2,cumprod),

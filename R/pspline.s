@@ -1,14 +1,15 @@
-# SCCS @(#)pspline.s	1.3 12/02/98
+# SCCS @(#)pspline.s	1.4 02/24/99
 #
 # the p-spline function for a Cox model
 #
-pspline <- function(x, df=4, theta, nterm=2.5*df, degree=3, eps=.1, ...) {
-  require(splines)
-  if (!missing(theta)) {
+pspline <- function(x, df=4, theta, nterm=2.5*df, degree=3, eps=.1, 
+		    method, ...) {
+    require(splines)
+    if (!missing(theta)) {
 	method <- 'fixed'
 	if (theta <=0 || theta >=1) stop("Invalid value for theta")
 	}
-    else if (df ==0) {
+    else if (df ==0 || (!missing(method) && method=='aic')) {
 	method <- 'aic'
 	nterm <- 15    #will be ok for up to 6-8 df
 	if (missing(eps)) eps <- 1e-5
@@ -53,10 +54,9 @@ pspline <- function(x, df=4, theta, nterm=2.5*df, degree=3, eps=.1, ...) {
 	    }
         }	
 
-    ##printfun <- function(coef, var, var2, df, history, cbase) 
     printfun <- function(coef, var, var2, df, history) {
-      test1 <- coxph.wtest(var, coef)$test
-        # cbase contains the centers of the basis functions
+	test1 <- coxph.wtest(var, coef)$test
+	# cbase contains the centers of the basis functions
 	#   do a weighted regression of these on the coefs to get a slope
 	xmat <- cbind(1, cbase)
 	xsig <- coxph.wtest(var, xmat)$solve   # V X , where V = g-inverse(var)
@@ -79,10 +79,9 @@ pspline <- function(x, df=4, theta, nterm=2.5*df, degree=3, eps=.1, ...) {
 	list(coef=cmat, history=paste("Theta=", format(theta)))
 	}
     # Line 2 below is a real sneaky thing, see notes.
-    ### Who needs sneaky? 
-    ###printfun[[6]] <- knots[2:nvar] + (rx[1] - knots[1])
-    cbase<-knots[2:nvar] + (rx[1] - knots[1])
-    
+    ## We don't need to be sneaky. We have lexical scope :)
+    ## printfun[[6]] <- knots[2:nvar] + (rx[1] - knots[1])
+    cbase<-knots[2:nvar] + (rx[1] - knots[1])	       
     if (method=='fixed') {
 	temp <- list(pfun=pfun,
 		     printfun=printfun,
@@ -110,7 +109,7 @@ pspline <- function(x, df=4, theta, nterm=2.5*df, degree=3, eps=.1, ...) {
 		     printfun=printfun,
 		     pparm=dmat,
 		     diag =F,
-		     cargs = c('status', 'df', 'plik'),
+		     cargs = c('neff', 'df', 'plik'),
 		     cparm=list(eps=eps, init=c(.5, .95), 
 		                lower=0, upper=1, ...),
 		     varname=xnames,

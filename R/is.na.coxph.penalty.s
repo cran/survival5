@@ -1,4 +1,4 @@
-#
+#  SCCS  @(#)is.na.coxph.penalty.s	1.4 02/21/99
 # The subscript function for coxph.penalty objects
 #  without it the "subset" arg of a model statement tosses
 #  away all of the attributes

@@ -1,4 +1,4 @@
-# SCCS @(#)frailty.gamma.s	1.3 01/14/99
+# SCCS @(#)frailty.gamma.s	1.4 06/10/00
 # 
 # Defining function for gamma frailty fits
 #
@@ -8,7 +8,7 @@ frailty.gamma <- function(x, sparse=(nclass >5), theta, df, eps= 1e-5,
     if (sparse)	x <-as.numeric(as.factor(x))
     else{
 	x <- as.factor(x)
-	###attr(x,'contrasts') <- function(n,...) contr.treatment(n,F)
+	##attr(x,'contrasts') <- function(n,...) contr.treatment(n,F)
         attr(x,"contrasts")<-contr.treatment(nclass,contrasts=F)
         }
     class(x) <- c("coxph.penalty",class(x))
@@ -56,7 +56,7 @@ frailty.gamma <- function(x, sparse=(nclass >5), theta, df, eps= 1e-5,
 	df2 <- max(df, .5)      # Stop silly p-values
 	list(coef=c(NA, NA, NA, test, df, 1-pchisq(test, df2)),
 		 history=paste("Variance of random effect=", format(theta),
-	                       "  EM likelihood =", 
+	                       "  I-likelihood =", 
 		         format(round(clog,1), digits=10)))
 	}
 

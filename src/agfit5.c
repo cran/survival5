@@ -1,22 +1,16 @@
-/**
-*** See coxfit4.c for comments on R changes
-**/
-
-/* SCCS  @(#)agfit4.c	1.1 10/28/98  */
+/* SCCS   */
 /* A reentrant version of the agfit program, for random effects modeling
 **   with reasonable efficiency (I hope).  The important arrays are saved
 **   from call to call so as to speed up the process.  The x-matrix itself
 **   is the most important of these.
+** This is the version with the "smart sorting" speedup.
 **
-** agfit4_a: Entry and intial iteration step for beta=initial, theta=0
+** agfit5_a: Entry and intial iteration step for beta=initial, theta=0
 **              (no frailty)
 **            Most of the same arguments as agfit2.
 **            Allocate and save arrays in static locations.
-** agfit4_b: Iterate to convergence given an initial value.
-** agfit4_c: Compute residuals and release the saved memory.
-**
-**     McGilchrist's method for frailty with a fixed theta, but for
-**     space savings I assume that many elements of imat are zero
+** agfit5_b: Iterate to convergence given an initial value.
+** agfit5_c: Compute residuals and release the saved memory.
 **
 **  the input parameters are
 **
@@ -28,10 +22,10 @@
 **                    :row 3: status for the ith person    1=dead , 0=censored
 **       covar(nv,n)  :covariates for person i.
 **                        Note that S sends this in column major order.
-**       strata(n)    :marks the strata.  Will be 1 if this person is the
-**                       last one in a strata.  If there are no strata, the
-**                       vector can be identically zero, since the nth person's
-**                       value is always assumed to be = to 1.
+**       strata(nstrat):sizes of the strata, cumulative
+**       sort 	     : two column matrix:
+**                      sort order for the obs, using stop time, last to first
+**                      sort order for the obs, using start time, last to first
 **       offset(n)    :offset for the linear predictor
 **       weights(n)   :case weights
 **       eps          :tolerance for convergence.  Iteration continues until
@@ -65,7 +59,6 @@
 **       expect       : contains the "expected" for each subject
 ** 
 **  work arrays
-**       end(n)      :how far to look
 **       score(n)     
 **       a(nvar+ nfrail), a2(nvar+nfrail)
 **       cmat(nvar,nvar+nfrail)       ragged array
@@ -83,43 +76,38 @@
 #include <math.h>
 #include <stdio.h>
 #include "survS.h"
-#include "Rdefines.h"
-#include "Rinternals.h"
 #include "survproto.h"
 
 static double **covar, **cmat, **cmat2;
 static int *end;
 static double *a, *oldbeta, *a2;
 static double *offset, *weights;
-static int    *event, *frail, *strata;
+static int    *event, *frail;
 static double *score, *start, *stop;
+static int    *sort1, *sort2;
 static double *tmean;
-static int    ptype, pdiag;
+static int    ptype, pdiag, nstrat;
 static double *ipen, *upen, logpen;
 static int   *zflag;
-/**
-*** R environment and functions
-*** has to be visible to cox_callback
- **/
-
-SEXP  rho,fexpr1,fexpr2;
-
 
 static double **cmatrix(double *, int, int);
 
-void agfit4_a(int *nusedx, int *nvarx, double *yy, 
+void agfit5_a(int *nusedx, int *nvarx, double *yy, 
 	       double *covar2, double *offset2,
-	       double *weights2, int *strata2,
+	       double *weights2, 
+	       int   *strata,  int   *sort,
 	       double *means, double *beta, double *u, 
 	       double *loglik, 
 	       int *methodx, int *ptype2, int *pdiag2,
-	       int *nfrail,  int *frail2, void *expr1, void *expr2, void *Rrho)
+	      int *nfrail,  int *frail2,
+	      void *fexpr1,void *fexpr2, void *rho
+)
 {
-
     int i,j,k, person;
     int     nused, nvar;
     int    nf, nvar2;
     int  deaths, itemp, endp;
+    int  istrat, indx2, p, ksave;  
 
     double  denom, zbeta, risk;
     double  temp;
@@ -135,11 +123,7 @@ void agfit4_a(int *nusedx, int *nvarx, double *yy,
     ptype = *ptype2;
     pdiag = *pdiag2;
 
-    rho=(SEXP) Rrho;
-    fexpr1= (SEXP) expr1;
-    fexpr2= (SEXP) expr2;
-
-     /*
+    /*
     **  Allocate storage for the arrays and vectors
     **  Since they will be used later, sizes are based on what will be
     **    needed with the frailty terms.
@@ -150,7 +134,7 @@ void agfit4_a(int *nusedx, int *nvarx, double *yy,
 	cmat2= cmatrix(0, nvar2, nvar+1);
         }
 
-    a = Calloc(4*nvar2 + 5*nused, double);
+    a = Calloc(4*nvar2 + 5*nused , double);
     oldbeta = a + nvar2;
     a2 =  oldbeta + nvar2;
     weights = a2+ nvar2;
@@ -159,18 +143,20 @@ void agfit4_a(int *nusedx, int *nvarx, double *yy,
     tmean   = score + nused;
     start   = tmean + nvar2;
     stop    = start + nused;
+    
     event  = Calloc(3*nused, int);
-    strata  = event + nused;
-    end     = strata+ nused;
+    sort1   = event + nused;
+    sort2   = sort1 + nused;
+
     for (i=0; i<nused; i++) {
 	weights[i] = weights2[i];
 	offset[i]  = offset2[i];
 	event[i]  =  yy[nused + nused +i];
-	strata[i] = strata2[i];
+	sort1[i]  = sort[i];
+	sort2[i]  = sort[nused+i];
 	start[i]  = yy[i];
 	stop[i]   = yy[nused+i];
         }
-    strata[nused-1] =1;  /* failsafe */   
 
     /* scratch space for penalty 
     **    upen needs to be max(nvar, nfrail), 
@@ -205,7 +191,6 @@ void agfit4_a(int *nusedx, int *nvarx, double *yy,
     ** Find the loglik of the initial model
     **   (actually, just a no-sparse-terms model) -- loglik only
     */
-    strata[nused-1] =1;
     *loglik = 0;
 
     for (person=0; person<nused; person++) {
@@ -215,47 +200,85 @@ void agfit4_a(int *nusedx, int *nvarx, double *yy,
         score[person] = zbeta + offset[person];  /* save this away */
         }
 
+    /*
+    **  'person' walks through the stop times from largest to smallest
+    **     (sort1[0] points to the largest stop time, sort1[1] the next, ...)
+    **  'time' is the time of current interest, which also goes from smallest
+    **      to largest.  
+    **  'indx2' walks through the start times.  It will be smaller than 
+    **    'person': if person=27 that means that 27 subjects have stop >=time,
+    **    and are thus potential members of the risk set.  If 'indx2' =9,
+    **    that means that 9 subjects have start >=time and thus are NOT part
+    **    of the risk set.  (stop > start for each subject guarrantees that
+    **    the 9 are a subset of the 27). 
+    **  Basic algorithm: move 'person' forward, adding the new subject into
+    **    the risk set.  If this is a new, unique death time, take selected
+    **    old obs out of the sums, add in obs tied at this time, then
+    **    add terms to the loglik, etc.
+    */
+    istrat=0;
+    indx2 =0;
+    denom =0;
     for (person=0; person<nused;) {
-	if (event[person] ==0) person++;
+	p = sort1[person];
+	if (event[p]==0){
+	    risk = exp(score[p]) * weights[p];
+	    denom += risk;
+	    person++;
+	    }
 	else {
-            /*
-            ** compute the mean over the risk set (ac)
-            */
-            denom =0;
-            efron_wt =0;
-            meanwt =0;
+	    time = stop[p];
+	    /*
+	    ** subtract out the subjects whose start time is to the right
+	    */
+	    for (; indx2<strata[istrat]; indx2++) {
+		p = sort2[indx2];
+		if (start[p] < time) break;
+		risk = exp(score[p]) * weights[p];
+		denom -= risk;
+		}
 
-            time = stop[person];
-            deaths=0;
-            for (k=person; k<nused; k++) {
-                if (start[k] < time) {
-                    end[person] = k;     /*speed up -- last obs in risk set */
-                    risk = exp(score[k]) * weights[k];
-                    denom += risk;
-                    if (stop[k]==time && event[k]==1) {
-                        deaths += event[k];
-                        efron_wt += risk*event[k];
-                        meanwt += weights[k];
-                        }
-                     }
-                if (strata[k]==1) break;
-                }
- 
-            /*
-            ** Add up the loglik
-            */
-            meanwt /= deaths;
-            itemp = -1;
-            endp = end[person];
-            for (k=person; k<= endp && stop[k]==time; k++) {
-                if (event[k]==1) {
-                    itemp++;
-                    temp = itemp*method/deaths;
-                    d2 = denom - temp*efron_wt;
-                    *loglik +=  weights[k]*score[k] -meanwt *log(d2);
-                    }
-                person++;
-                }
+	    /*
+	    ** compute the averages over subjects with
+	    **   exactly this death time (a2 & c2)
+	    */
+	    efron_wt =0;
+	    meanwt =0;
+	    deaths=0;
+	    for (k=person; k<strata[istrat]; k++) {
+		p = sort1[k];
+		if (stop[p] < time) break;
+		risk = exp(score[p]) * weights[p];
+		denom += risk;
+
+		if (event[p]==1) {
+		    deaths += event[p];
+		    efron_wt += risk*event[p];
+		    meanwt += weights[p];
+		    }
+		}
+	    ksave = k;
+
+	    /*
+	    ** Now add it into the loglik
+	    */
+	    meanwt /= deaths;
+	    itemp = -1;
+	    for (; person<ksave; person++) {
+		p = sort1[person];
+		if (event[p]==1) {
+		    itemp++;
+		    temp = itemp*method/deaths;
+		    d2 = denom - temp*efron_wt;
+		    *loglik +=  weights[p]*score[p] -meanwt *log(d2);
+		    }
+		}
+	    }
+
+	if (person == strata[istrat]) {
+	    istrat++;
+	    denom =0;
+	    indx2 = person;
 	    }
 	}   /* end  of accumulation loop */
 
@@ -275,25 +298,28 @@ void agfit4_a(int *nusedx, int *nvarx, double *yy,
 ** This call is used for iteration
 */
 
-void agfit4_b(int *maxiter, int *nusedx, int *nvarx, 
-	       double *beta, double *u,
+void agfit5_b(int *maxiter, int *nusedx, int *nvarx, 
+	       int *strata, double *beta, double *u,
 	       double *imat2,  double *jmat2, double *loglik, 
 	       int *flag,  double *eps, double *tolerch, int *methodx, 
-	       int *nfrail, double *fbeta, double *fdiag)
+	       int *nfrail, double *fbeta, double *fdiag,
+	      /* R callback information */
+	      void *fexpr1, void *fexpr2, void *rho
+)
 {
-
     int i,j,k, person;
     int ii;
     int     iter;
     int     nused, nvar;
     int    nf, nvar2;
-    int    fgrp=0; /*-Wall*/
+    int    fgrp;
     int    halving;
     int    itemp, endp, deaths;
+    int  istrat, indx2, p, ksave;  
 
     double  denom, zbeta, risk;
     double  temp, temp2;
-    double  newlk=0; /*-Wall*/
+    double  newlk;
     double  d2, efron_wt;
     double  meanwt, time;
     double  method;
@@ -322,8 +348,7 @@ void agfit4_b(int *maxiter, int *nusedx, int *nvarx,
 	for (i=0; i<nf; i++) fdiag[i] =0;
 	for (i=0; i<nvar2; i++) {
 	    u[i] =0;
-	    for (j=0; j<nvar; j++)
-		    jmat[j][i] =0 ;
+	    for (j=0; j<nvar; j++) jmat[j][i] =0 ;
             }
 
         for (person=0; person<nused; person++) {
@@ -337,71 +362,109 @@ void agfit4_b(int *maxiter, int *nusedx, int *nvarx,
 	    score[person] = zbeta;
 	    }
   
-	for (person=0; person<nused; ) {
-	    if (event[person]==0) person++;
-	    else {
-		endp = end[person];  /* shorter loops than 1 to n */
-                /*
-                ** compute the mean and covariance over the risk set (a and c)
-                */
-                efron_wt =0;
-                denom =0;
-                meanwt =0;
-                for (i=0; i<nvar2; i++) {
-                    a[i] =0;
-                    a2[i]=0;
-		    for (j=0; j<nvar; j++) {
-			cmat[j][i] = 0;
-			cmat2[j][i]= 0;
-                        }
-		    }
-                time = stop[person];
-                deaths=0;
-                for (k=person; k<=endp; k++) {
-                    if (start[k] < time) {
-                        risk = exp(score[k]) * weights[k];
-                        denom += risk;
+        istrat=0;
+        indx2 =0;
+	denom =0;
+	for (i=0; i<nvar2; i++) {
+	    a[i] =0;
+	    for (j=0; j<nvar; j++) {
+		cmat[j][i]=0;
+		}
+	    }
 
-			if (nf>0) {
-			    fgrp = frail[k] -1;
-			    a[fgrp] += risk;
+	for (person=0; person<nused; ) {
+	    p = sort1[person];
+	    if (nf>0)  fgrp = frail[p] -1;
+	    else       fgrp = -1;
+	    if (event[p]==0){
+		risk = exp(score[p]) * weights[p];
+		denom += risk;
+		if (fgrp >=0) a[fgrp] += risk;
+		for (i=0; i<nvar; i++) {
+		    a[i+nf] += risk*covar[i][p];
+		    if (fgrp >=0) cmat[i][fgrp] += risk * covar[i][p];
+		    for (j=0; j<=i; j++)
+			cmat[i][j+nf] += risk*covar[i][p]*covar[j][p];
+		    }
+		person++;
+		}
+	    else {
+		time = stop[p];
+		/*
+		** subtract out the subjects whose start time is to the right
+		*/
+		for (; indx2<strata[istrat]; indx2++) {
+		    p = sort2[indx2];
+		    if (start[p] < time) break;
+		    risk = exp(score[p]) * weights[p];
+		    denom -= risk;
+		    if (nf >0) fgrp = frail[p] - 1;
+		    else       fgrp = -1;
+		    if (fgrp >=0) a[fgrp] -= risk;
+		    for (i=0; i<nvar; i++) {
+			a[i+nf] -= risk*covar[i][p];
+			if (fgrp >=0) cmat[i][fgrp] -= risk* covar[i][p];
+			for (j=0; j<=i; j++)
+			    cmat[i][j+nf] -= risk*covar[i][p]*covar[j][p];
+			}
+		    }
+		/*
+		** compute the averages over this death time (a2 & c2)
+		*/
+		efron_wt =0;
+		meanwt =0;
+		for (i=0; i<nvar2; i++) {
+		    a2[i]=0;
+		    for (j=0; j<nvar; j++) {
+			cmat2[j][i]= 0;
+			}
+		    }	
+		deaths=0;
+		for (k=person; k<strata[istrat]; k++) {
+		    p = sort1[k];
+		    if (stop[p] < time) break;
+		    risk = exp(score[p]) * weights[p];
+		    denom += risk;
+		    if (nf>0) {
+			fgrp = frail[p] -1;
+			if (fgrp>=0) a[fgrp] += risk;
+			}
+		    else fgrp = -1;
+		    for (i=0; i<nvar; i++) {
+			a[i+nf] += risk*covar[i][p];
+			if (fgrp>=0) cmat[i][fgrp] += risk*covar[i][p];
+			for (j=0; j<=i; j++)
+			    cmat[i][j+nf] += risk*covar[i][p]*covar[j][p];
+			}
+		    if (event[p]==1) {
+			deaths += event[p];
+			efron_wt += risk* weights[p];
+			meanwt += weights[p];
+			if (fgrp >= 0) {
+			    u[fgrp] += weights[p];
+			    a2[fgrp] += risk;
 			    }
 			for (i=0; i<nvar; i++) {
-			    a[i+nf] += risk*covar[i][k];
-			    if (nf>0) cmat[i][fgrp] += risk*covar[i][k];
+			    a2[i+nf]+= risk*covar[i][p];
+			    u[i+nf] += weights[p]* covar[i][p];
+			    if (fgrp >=0) cmat2[i][fgrp] += risk*covar[i][p];
 			    for (j=0; j<=i; j++)
-				    cmat[i][j+nf] += covar[i][k]*covar[j][k] *
-					    risk;
+				cmat2[i][j+nf] += risk*covar[i][p]*covar[j][p];
 			    }
-                        if (stop[k]==time && event[k]==1) {
-                            deaths += event[k];
-                            efron_wt += risk;
-                            meanwt += weights[k];
-			    if (nf>0) {
-				u[fgrp] += weights[k];
-				a2[fgrp] += risk;
-			        }
-			    for (i=0; i<nvar; i++) {
-				u[i+nf] += weights[k] *covar[i][k];
-				a2[i+nf] +=  risk*covar[i][k];
-				if (nf>0) cmat2[i][fgrp] += risk*covar[i][k];
-				for (j=0; j<=i; j++)
-				    cmat2[i][j+nf] +=covar[i][k]*covar[j][k] *
-					                  risk;
-			        }
-			    }
-		        }
+			}
 		    }	
- 
-                itemp = -1;
-                meanwt /= deaths;
-                for (k=person; k<=endp && stop[k]==time; k++) {
-		    person++;
-                    if (event[k]==1) {
-                        itemp++;
-                        temp = itemp*method/deaths;
-                        d2 = denom - temp*efron_wt;
-                        newlk +=  weights[k]*score[k] -meanwt *log(d2);
+		ksave =k;
+
+		/* add results into u and imat */
+		itemp = -1;
+		meanwt /= deaths;
+		for (; person<ksave; person++) {
+		    p = sort1[person];
+		    if (event[p]==1) {
+			itemp++;
+			temp = itemp*method/deaths;
+			d2 = denom - temp*efron_wt;
+			newlk +=  weights[p]*score[p] -meanwt *log(d2);
 			for (i=0; i<nvar2; i++) {  /* by row of full matrix */
 			    temp2 = (a[i] - temp*a2[i])/d2;
 			    tmean[i] = temp2;
@@ -410,36 +473,48 @@ void agfit4_b(int *maxiter, int *nusedx, int *nvarx,
 			    else {
 				ii = i-nf;  /*actual row in c/j storage space*/
 				for (j=0; j<=i; j++) 
-					jmat[ii][j] +=  meanwt*(
+				    jmat[ii][j] +=  meanwt*(
 					(cmat[ii][j] - temp*cmat2[ii][j]) /d2 -
-                                          temp2*tmean[j]);
-			        }
+					temp2*tmean[j]);
+				}
 			    }
-                        }
-                    }
-                }
-            }   /* end  of accumulation loop */
+			}
+		    }
+		}
+
+	    if (person == strata[istrat]) {
+		istrat++;
+		denom =0;
+		indx2 = person;
+		for (i=0; i<nvar2; i++) {
+		    a[i] =0;
+		    for (j=0; j<nvar; j++) {
+			cmat[j][i]=0;
+			}
+		    }
+		}
+	    }   /* end  of accumulation loop */
 
 	/*
 	** Add in the penalty terms
-        */
+	*/
 	if (ptype==1 || ptype==3) {
 	    /* there are sparse terms */
-    	    cox_callback(1, fbeta, upen, ipen, &logpen, zflag,nf,fexpr1,rho); 
+	    cox_callback(1, fbeta, upen, ipen, &logpen, zflag,nf,fexpr1,rho); 
 	    if (zflag[0] ==1) {  /* force terms to zero */
 		for (i=0; i<nf; i++) {
 		    u[i]=0;
 		    fdiag[i] =1;
 		    for (j=0; j<nvar; j++) jmat[j][i]=0;
 		    }
-	        }
+		}
 	    else {
 		for (i=0; i<nf; i++) {
 		    u[i] += upen[i];
 		    fdiag[i] += ipen[i];
 		    }
 		newlk += logpen;
-	        }
+		}
 	    }
 
 	if (ptype==2 || ptype==3) {
@@ -451,21 +526,21 @@ void agfit4_b(int *maxiter, int *nusedx, int *nvarx,
 		    u[i+nf] += upen[i];
 		    jmat[i][i+nf] += ipen[i];
 		    }
-	        }
+		}
 	    else {
 		k =0;
 		for (i=0; i<nvar; i++) {
 		    u[i+nf] += upen[i];
 		    for (j=nf; j<nvar2; j++) jmat[i][j] += ipen[k++];
 		    }
-	        }
+		}
 	    for (i=0; i<nvar; i++) {
 		if (zflag[i] ==1) {
 		    u[i+nf]=0;
 		    for (j=0; j<i; j++) jmat[i][j+nf]=0;
 		    jmat[i+nf][i] =1;
 		    }
-	        }
+		}
 	    }
 
 	/* am I done?
@@ -475,18 +550,18 @@ void agfit4_b(int *maxiter, int *nusedx, int *nvarx,
 	if (fabs(1-(*loglik/newlk))<=*eps ) { /* all done */
 	    *loglik = newlk;
 	    for (i=0; i<nvar; i++) {
-	        for (j=0; j<nvar2; j++)  imat[i][j] = jmat[i][j];
-	        }
+		for (j=0; j<nvar2; j++)  imat[i][j] = jmat[i][j];
+		}
 	    chinv3(jmat, nvar2, nf, fdiag);
 	    for (i=nf; i<nvar2; i++) {       /*nicer output for S user */
-	        fdiag[i] = jmat[i-nf][i];
-	        jmat[i-nf][i] =1;
+		fdiag[i] = jmat[i-nf][i];
+		jmat[i-nf][i] =1;
 		imat[i-nf][i] =1;
 		for (j=i+1; j<nvar2; j++) {
 		    jmat[i-nf][j] = 0;
 		    imat[i-nf][j] = 0;
 		    }
-	        }
+		}
 
 	    if (halving==1) *flag= 1000; /*didn't converge after all */
 	    *maxiter = iter;
@@ -496,27 +571,27 @@ void agfit4_b(int *maxiter, int *nusedx, int *nvarx,
 	if (iter==*maxiter) break;  /*skip the step halving and etc */
 
 	if (iter>0 && newlk < *loglik)   {    /*it is not converging ! */
-		halving =1;
-		for (i=0; i<nvar; i++)
-		    beta[i] = (oldbeta[i+nf] + beta[i]) /2; 
-		for (i=0; i<nf; i++)
-		    fbeta[i] = (oldbeta[i] + fbeta[i])/2;
-		}
-	    else {
-		halving=0;
-		*loglik = newlk;
-		chsolve3(jmat,nvar2, nf, fdiag, u);
+	    halving =1;
+	    for (i=0; i<nvar; i++)
+		beta[i] = (oldbeta[i+nf] + beta[i]) /2; 
+	    for (i=0; i<nf; i++)
+		fbeta[i] = (oldbeta[i] + fbeta[i])/2;
+	    }
+	else {
+	    halving=0;
+	    *loglik = newlk;
+	    chsolve3(jmat,nvar2, nf, fdiag, u);
 
-		j=0;
-		for (i=0; i<nvar; i++) {
-		    oldbeta[i] = beta[i];
-		    beta[i] += u[i+nf];
-		    }
-		for (i=0; i<nf; i++) {
-		    oldbeta[i] = fbeta[i];
-		    fbeta[i] += u[i];
-		    }
+	    j=0;
+	    for (i=0; i<nvar; i++) {
+		oldbeta[i] = beta[i];
+		beta[i] += u[i+nf];
 		}
+	    for (i=0; i<nf; i++) {
+		oldbeta[i] = fbeta[i];
+		fbeta[i] += u[i];
+		}
+	    }
 	}   /* return for another iteration */
 
     *loglik = newlk;
@@ -538,10 +613,8 @@ void agfit4_b(int *maxiter, int *nusedx, int *nvarx,
     return;
     }
 
-
 static double **cmatrix(double *data, int ncol, int nrow)
     {
-
     int i,j;
     double **pointer;
     double *temp;
@@ -561,72 +634,160 @@ static double **cmatrix(double *data, int ncol, int nrow)
 	    }
         }
     return(pointer);
-    }
+	}
 
-static void cmatrix_free(double **data) 
-{
+static void cmatrix_free(double **data) {
     Free(*data);
     Free(data);
     }
 
 
-void agfit4_c (int *nusedx, int *nvar, int *methodx, double *expect) {
+void agfit5_c(int *nusedx, int *nvar, int *strata,
+	      int *methodx, double *expect) {
+    int i, j, k, ksave;
+    int p, istrat, indx2;
+    double denom, e_denom;
+    int deaths;
+    double hazard, e_hazard, cumhaz;
+    double temp, time;
+    double wtsum, *dtimes, *haz;
+    int nused, ndeath, method;
+    int person;
+    int strata_start;
 
-    double hazard, 
-           denom,
-           temp;
-    double time, e_denom, wtsum;
-    double e_hazard;
-    double deaths;
-
-    int    person,
-           nused,
-           method,
-           k;
-    int    endp;
 
     nused = *nusedx;
     method= *methodx;
 
+    j=0;
+    for (i=0; i<nused; i++) {
+	j += event[i];  /* count number of deaths */
+	expect[i] =0;   /* initialize */
+	score[i] = exp(score[i]);
+	}
+    haz = (double *) ALLOC(2*j, sizeof(double));
+    dtimes = haz +j;   
+
+    indx2 =0;
+    denom =0;
+    istrat=0;
+    ndeath = 0;
+    strata_start =0;
+    cumhaz=0;
     for (person=0; person<nused;) {
-        if (event[person]==0) person++;
+        p = sort1[person];
+        if (event[p]==0) { /* censored observation, just add to the denom */
+            denom += score[p]*weights[p];
+            person++;
+            }
+
         else {
-            denom =0;
+	    /* a death found -- increment the hazard */
             e_denom =0;
             wtsum =0;
-            time = stop[person];
-            deaths=0;
-	    endp = end[person];
-            for (k=person; k<=endp; k++) {
-                if (start[k] < time) {
-                    denom += score[k]*weights[k];
-                    if (stop[k]==time && event[k]==1) {
-                        deaths++;
-                        wtsum += weights[k];
-                        e_denom += score[k]*weights[k];
-                        }
-                     }
+            time = stop[p];
+            deaths=0;                   /* # tied deaths at this time */
+            for (k=person; k<strata[istrat]; k++) {
+                p = sort1[k];
+                if (stop[p] < time) break;
+                denom += score[p] * weights[p];
+                if (event[p]==1) {
+                    deaths += 1;
+                    e_denom += score[p]*weights[p];
+                    wtsum += weights[p];
+                    }
+                }
+            ksave = k;
+
+            /*
+            ** subtract out the subjects whose start time is to the right
+            */
+            for (; indx2<strata[istrat]; indx2++) {
+                p = sort2[indx2];
+                if (start[p] < time) break;
+                denom -= score[p] * weights[p];
                 }
 
             /*
-            ** Do "expected" for the risk set
+            ** At this point denom, e_denom, etc are updated.  They are
+            **   used to create the increment to the hazard:
+            **   hazard = usual increment
+            **   e_hazard = efron increment, for tied deaths only
             */
             hazard =0;
             e_hazard=0;
             wtsum /=deaths;
             for (k=0; k<deaths; k++) {
-                temp = method *(k/deaths);
-                hazard += wtsum/(denom - temp*e_denom);
+                temp = method *(k/(double) deaths);
+                hazard   += wtsum/(denom - temp*e_denom);
                 e_hazard += wtsum*(1-temp)/(denom - temp*e_denom);
                 }
-            for (k=person; k<=endp; k++) {
-                if (start[k] < time) {
-                    if (stop[k]==time && event[k]==1)
-                            expect[k] += score[k]*e_hazard;
-                    else    expect[k] += score[k]*hazard;
-                    }
-                if (stop[k]==time) person++;
+	    cumhaz += hazard;
+            dtimes[ndeath] = time;      /* remember the death times */
+            haz[ndeath] =    cumhaz;
+	    ndeath++;
+
+            /*
+            ** Add this hazard increment to all whose intervals end just now
+            */
+            for (k=person-1; k>=strata_start; k--) { /*non-deaths */
+                p = sort1[k];
+                if (stop[p] > time) break;
+                expect[p] += score[p]*hazard;
                 }
+            for (; person<ksave; person++) { /* deaths */
+                p = sort1[person];
+                expect[p] += score[p]*e_hazard;
+                }
+            }
+            
+        if (person==strata[istrat]) {
+	    /*
+            ** Last subject of a stratum.  Do the remaining work.
+            ** Walk through the list of subjects, adding in the
+            **  accrued hazard at non-death times (times strictly inside
+            **  each subject's interval).
+	    ** We use the difference in cumulate hazards, to keep the process
+	    **  to O(2n) rather than O(n * ndeath)
+	    */
+	    i = strata_start;
+	    temp =0;
+	    for (k=0; k<ndeath; k++) {
+		for (; i<person; i++) {
+		    p = sort2[i];
+		    if (start[p] >= dtimes[k]) expect[p] += temp;
+		    else break;
+		    }
+		temp = haz[k];
+		}
+	    for (; i<person; i++) {  /*those entered before the first death */
+		p = sort2[i];
+		expect[p] += score[p]*temp;
+		}
+
+	    /* Now subtract the cumhaz at lower interval */
+	    i = strata_start;
+	    temp =0;
+	    for (k=0; k<ndeath; k++) {
+		for (; i<person; i++) {
+		    p = sort1[i];
+		    if (stop[p] > dtimes[k]) expect[p] -= score[p]*temp;
+		    else break;
+		    }
+		temp = haz[k];
+		}
+	    for (; i<person; i++) {  /* those exiting <= the first death */
+		p = sort1[i];
+		expect[p] -= score[p]*temp;
+		}
+	    
+	    /* reset for the next stratum */
+            istrat++;
+            denom=0;
+	    cumhaz=0;
+            ndeath=0;
+            indx2 =  person;
+            strata_start=person;
             }
         }
     

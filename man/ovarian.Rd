@@ -2,6 +2,8 @@
 \alias{ovarian}
 \title{Ovarian cancer survival data}
 \usage{data(ovarian)}
+\description{Survival in a randomised trial comparing two treatments for
+    ovarian cancer (? from an Eastern Cooperative Oncology Group study)}
 \format{
     \tabular{ll}{
 	futime:\tab survival or censoring time\cr
@@ -12,6 +14,7 @@
 	ecog.ps:\tab ECOG performance status (1 is better, see reference)\cr
      }
  }
-\source{Terry Therneau (? from an Eastern Cooperative Oncology Group study)}
+\source{Terry Therneau}
 \references{for ECOG performance status: \url{http://ecog.dfci.harvard.edu/~ecogdba/general/perf_stat.html}}
 \keyword{datasets}
+\keyword{survival}

@@ -1,4 +1,5 @@
 /*  SCCS @(#)pyears2.c	5.2 10/27/98
+/*
 **  Person-years calculations.
 **     same as pyears1, but no expected rates
 **
@@ -37,7 +38,6 @@ void pyears2(int   *sn,      int   *sny,   int   *sdoevent,
 	     double *pyears,  double *pn,    double *pcount, 
 	     double *offtable)
     {
-
     register int i,j;
     int     n,
 	    ny,

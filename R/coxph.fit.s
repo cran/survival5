@@ -1,15 +1,15 @@
-# SCCS @(#)coxph.fit.s	5.1 08/30/98
-coxph.fit <- function(x, y, strata, offset, init, iter.max,
-			eps, toler.chol, weights, method, rownames)
+# SCCS  @(#)coxph.fit.s	5.8 06/24/99
+coxph.fit <- function(x, y, strata, offset, init, control,
+			weights, method, rownames)
     {
     n <-  nrow(y)
-    if (is.matrix(x)) nvar <- ncol(x)
-    else  {
-      if (length(x)==0)
-        nvar <-0
-      else
-        nvar <-1
-    }
+    if (is.matrix(x))
+        nvar <- ncol(x)
+    else
+        if (length(x)==0)
+            nvar <-0
+        else
+            nvar <-1
     time <- y[,1]
     status <- y[,2]
 
@@ -40,16 +40,17 @@ coxph.fit <- function(x, y, strata, offset, init, iter.max,
 	nullmodel <- T
 	nvar <- 1
 	init <- 0
-	iter.max <- 0
+	maxiter <- 0
 	}
     else {
 	nullmodel <- F
+	maxiter <- control$iter.max
 	if (!missing(init) && !is.null(init)) {
 	    if (length(init) != nvar) stop("Wrong length for inital values")
 	    }
 	else init <- rep(0,nvar)
 	}
-    coxfit <- .C("coxfit2", iter=as.integer(iter.max),
+    coxfit <- .C("coxfit2", iter=as.integer(maxiter),
 		   as.integer(n),
 		   as.integer(nvar), stime,
 		   sstat,
@@ -63,10 +64,10 @@ coxph.fit <- function(x, y, strata, offset, init, iter.max,
 		   imat= double(nvar*nvar), loglik=double(2),
 		   flag=integer(1),
 		   double(2*n + 2*nvar*nvar + 3*nvar),
-		   as.double(eps),
-		   as.double(toler.chol),
-		   sctest=as.double(method=="efron"),
-                    PACKAGE="survival5" )
+		   as.double(control$eps),
+		   as.double(control$toler.chol),
+		   sctest=as.double(method=="efron")
+                 ,PACKAGE="survival5")
 
     if (nullmodel) {
 	score <- exp(offset[sorted])
@@ -78,7 +79,7 @@ coxph.fit <- function(x, y, strata, offset, init, iter.max,
 				as.double(score),
 				as.double(weights),
 				resid=double(n),
-                    PACKAGE="survival5")
+                     PACKAGE="survival5")
 	resid <- double(n)
 	resid[sorted] <- coxres$resid
 	names(resid) <- rownames
@@ -95,13 +96,17 @@ coxph.fit <- function(x, y, strata, offset, init, iter.max,
 	else which.sing <- rep(F,nvar)
 
 	infs <- abs(coxfit$u %*% var)
-	if (iter.max >1) {
+	if (maxiter >1) {
 	    if (coxfit$flag == 1000)
 		   warning("Ran out of iterations and did not converge")
-	    else if (any((infs > eps) & (infs > sqrt(eps)*abs(coef))))
+	    else {
+		infs <- ((infs > control$eps) & 
+			 infs > control$toler.inf*abs(coef))
+		if (any(infs))
 		warning(paste("Loglik converged before variable ",
-			  paste((1:nvar)[(infs>eps)],collapse=" ,"),
-			  "; beta may be infinite. ", sep=''))
+			  paste((1:nvar)[infs],collapse=","),
+			  "; beta may be infinite. "))
+		}
 	    }
 
 	names(coef) <- dimnames(x)[[2]]
@@ -115,7 +120,7 @@ coxph.fit <- function(x, y, strata, offset, init, iter.max,
 				as.double(score),
 				as.double(weights),
 				resid=double(n),
-                    PACKAGE="survival5")
+                     PACKAGE="survival5")
 	resid <- double(n)
 	resid[sorted] <- coxres$resid
 	names(resid) <- rownames

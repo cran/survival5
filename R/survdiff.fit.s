@@ -33,7 +33,7 @@ survdiff.fit <- function(y, x, strat, rho=0) {
 		   expected = double(ngroup*nstrat),
 		   var.e    = double(ngroup * ngroup),
 		   double(ngroup), double(n),
-                    PACKAGE="survival5")
+             PACKAGE="survival5")
 
     if (nstrat==1)  list(expected = xx$expected,
 			 observed = xx$observed,

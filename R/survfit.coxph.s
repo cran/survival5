@@ -1,15 +1,21 @@
-# SCCS @(#)survfit.coxph.s	5.3 11/04/98
+# SCCS @(#)survfit.coxph.s	5.6 07/09/00
 
 survfit.coxph <-
   function(object, newdata, se.fit=T, conf.int=.95, individual=F,
 	    type, vartype,
-	    conf.type=c('log', 'log-log', 'plain', 'none')) {
+	    conf.type=c('log', 'log-log', 'plain', 'none'),
+	    call = match.call()) {
 
     if(!is.null((object$call)$weights))
 	stop("Survfit cannot (yet) compute the result for a weighted model")
     call <- match.call()
     Terms <- terms(object)
     strat <- attr(Terms, "specials")$strata
+    cluster<-attr(Terms, "specials")$cluster
+    if (length(cluster)) {
+	temp <- untangle.specials(Terms, 'cluster')
+	Terms <- Terms[-temp$terms]
+	}
     resp <-  attr(Terms, "variables")[attr(Terms, "response")]
     n <- object$n
     nvar <- length(object$coef)
@@ -29,11 +35,13 @@ survfit.coxph <-
     else conf.type <- match.arg(conf.type)
 
     # Recreate a copy of the data
+    #  (The coxph.getdata routine never returns cluster() terms).
     data <- coxph.getdata(object, y=T, x=se.fit,
-			           strata=(se.fit || length(strat)))
+			           strata=(length(strat)))
     y <- data$y
     ny <- ncol(y)
     if (nrow(y) != n) stop ("Mismatched lengths: logic error")
+    if (length(strat)) strata.all <- table(data$strata)
 
     # Get the sort index for the data, and add a column to y if
     #  necessary to make it of the "counting process" type  (I only
@@ -106,9 +114,7 @@ survfit.coxph <-
 	    }
 
 	else  {
-            #### is this right? <TSL>
-	    ####x2 <- model.matrix(Terms, m2)[,-1,drop=F]
-            x2 <- model.matrix(delete.response(Terms), m2)[,-1,drop=F]
+	    x2 <- model.matrix(delete.response(Terms), m2)[,-1,drop=F]
 	    n2 <- nrow(x2)
 	    offset2 <- model.extract(m2, 'offset')
 	    if (is.null(offset2)) offset2 <- 0
@@ -116,6 +122,7 @@ survfit.coxph <-
 		#
 		# The case of an agreg, with a multiple line newdata
 		#
+		strata.all <- object$n
 		if (length(strat)) {
 		    strata2 <- factor(x2[,strat], levels=levels(stratum))
 		    x2 <- x2[, -strat, drop=F]
@@ -155,14 +162,14 @@ survfit.coxph <-
 			     as.double(y2),
 			     as.double(x2),
 			     as.double(newrisk),
-			     as.integer(strata2),
-                    PACKAGE="survival5" )
+			     as.integer(strata2), PACKAGE="survival5" )
 	ntime <- 1:surv$nsurv
 	temp <- (matrix(surv$y, ncol=3))[ntime,]
-	temp <- list(time = temp[,1],
+	temp <- list(n=n, time = temp[,1],
 		     n.risk= temp[,2],
 		     n.event=temp[,3],
-		     surv = surv$surv[ntime])
+		     surv = surv$surv[ntime],
+		     type=type)
 	if (se.fit) temp$std.err <- sqrt(surv$varhaz[ntime])
 	}
     else {
@@ -179,8 +186,7 @@ survfit.coxph <-
 			      double(3*nvar),
 			      as.integer(n2),
 			      as.double(x2),
-			      as.double(newrisk),
-                    PACKAGE="survival5")
+			      as.double(newrisk), PACKAGE="survival5")
 	nsurv <- surv$nsurv[1]
 	ntime <- 1:nsurv
 	if (n2>1) {
@@ -193,19 +199,22 @@ survfit.coxph <-
 	    tvar  <- surv$varhaz[ntime]
 	    }
 	if (surv$strata[1] <=1)
-	    temp _ list(time=surv$y[ntime,1],
+	    temp _ list(n=n,time=surv$y[ntime,1],
 		     n.risk=surv$y[ntime,2],
 		     n.event=surv$y[ntime,3],
-		     surv=tsurv )
+		     surv=tsurv,
+			type=type)
 	else {
 	    temp <- surv$strata[1:(1+surv$strata[1])]
 	    tstrat <- diff(c(0, temp[-1])) #n in each strata
 	    names(tstrat) <- levels(data$strata)
-	    temp _ list(time=surv$y[ntime,1],
+	    temp _ list(n=n, time=surv$y[ntime,1],
 		     n.risk=surv$y[ntime,2],
 		     n.event=surv$y[ntime,3],
 		     surv=tsurv,
-		     strata= tstrat)
+		     strata= tstrat,
+			strata.all=strata.all,
+			type=type)
 	    }
 	if (se.fit) temp$std.err <- sqrt(tvar)
 	}
@@ -239,3 +248,6 @@ survfit.coxph <-
     class(temp) <- c('survfit.cox', 'survfit')
     temp
     }
+
+
+

@@ -1,6 +1,6 @@
-#SCCS @(#)agexact.fit.s	4.18 10/29/98
-agexact.fit <- function(x, y, strata, offset, iter.max,
-			eps, toler.chol, weights, init, method, rownames)
+#SCCS @(#)agexact.fit.s	4.20 06/24/99
+agexact.fit <- function(x, y, strata, offset, init, control,
+			  weights, method, rownames)
     {
     if (!is.matrix(x)) stop("Invalid formula for cox fitting function")
     if (!is.null(weights) && any(weights!=1))
@@ -44,7 +44,7 @@ agexact.fit <- function(x, y, strata, offset, iter.max,
 	}
     else init <- rep(0,nvar)
 
-    agfit <- .C("agexact", iter= as.integer(iter.max),
+    agfit <- .C("agexact", iter= as.integer(control$iter.max),
 		   as.integer(n),
 		   as.integer(nvar), sstart, sstop,
 		   sstat,
@@ -58,10 +58,9 @@ agexact.fit <- function(x, y, strata, offset, iter.max,
 		   flag=integer(1),
 		   double(2*nvar*nvar +nvar*4 + n),
 		   integer(2*n),
-		   as.double(eps),
-		   as.double(toler.chol),
-		   sctest=double(1)
-                ,PACKAGE="survival5")
+		   as.double(control$eps),
+		   as.double(control$toler.chol),
+		   sctest=double(1),PACKAGE="survival5" )
 
     var <- matrix(agfit$imat,nvar,nvar)
     coef <- agfit$coef
@@ -69,13 +68,17 @@ agexact.fit <- function(x, y, strata, offset, iter.max,
     else which.sing <- rep(F,nvar)
 
     infs <- abs(agfit$u %*% var)
-    if (iter.max >1) {
+    if (control$iter.max >1) {
 	if (agfit$flag == 1000)
 	       warning("Ran out of iterations and did not converge")
-	else if (any((infs > eps) & (infs > sqrt(eps)*abs(coef))))
-	    warning(paste("Loglik converged before variable ",
-			  paste((1:nvar)[(infs>eps)],collapse=","),
+	    else {
+		infs <- ((infs > control$eps) & 
+			 infs > control$toler.inf*abs(coef))
+		if (any(infs))
+		warning(paste("Loglik converged before variable ",
+			  paste((1:nvar)[infs],collapse=","),
 			  "; beta may be infinite. "))
+		}
 	}
 
     names(coef) <- dimnames(x)[[2]]
@@ -89,8 +92,7 @@ agexact.fit <- function(x, y, strata, offset, iter.max,
 		   score,
 		   rep(1.0, n),
 		   newstrat,
-		   resid=double(n),
-                PACKAGE="survival5")
+		   resid=double(n),PACKAGE="survival5")
     resid _ double(n)
     resid[sorted] <- agres$resid
     names(resid) <- rownames

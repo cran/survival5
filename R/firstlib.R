@@ -11,7 +11,9 @@ function (termobj, i)
         if (length(newformula) == 0) 
                 newformula <- 1
         newformula <- reformulate(newformula, resp)
+        environment(newformula)<-environment(termobj)
         terms(newformula, specials = names(attr(termobj, "specials")))
+
 }
 is.category <- function(x) inherits(x,"factor") || is.factor(x)
 

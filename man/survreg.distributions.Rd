@@ -4,12 +4,13 @@
 \usage{
 survreg.distributions
 }
-\format{
-  List of distributions for accelerated failure models. These are
+\description{ List of distributions for accelerated failure models. These are
   location-scale families for some transformation of time. The entry
   describes  the cdf \eqn{F} and density \eqn{f} of a canonical member of
   the family.
-
+}
+\format{
+ 
   There are two basic formats
   \tabular{ll}{
     name:\tab name of distribution\cr

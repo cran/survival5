@@ -1,4 +1,5 @@
 /* SCCS @(#)survreg5.c	1.1 02/06/99
+/*
 ** The variant of survreg4 for user-written distributions, penalized models
 **
 ** Input
@@ -51,17 +52,20 @@
 **  For the calculations involving sigma and an interval censored datum, I
 **    can't calculate the sigma derivatives simply from the eta derivs.
 **
+**  To add a new distribution:
+**              add a new "static void" declaration
+**              add it to the "switch(*dist)" list, (2 places)
+**              add the new subroutine to the bottom of the code, see
+**                      logist_d as an example
 */
 #include <stdio.h>
 #include <math.h>
 #include <float.h>
 #include "survS.h"
-#include "Rdefines.h"
-#include "Rinternals.h"
 #include "survproto.h"
 
 static double **funs, *z;
-static double dolik(int n, double *beta, int whichcase);
+static double dolik(int n, double *beta, int whichcase, void *fexpr1, void *fexpr2, void *density, void *rho);
 
 static int    nvar0, nvar, nvar2, nstrat;
 static double **covar, *wt;
@@ -75,28 +79,30 @@ static double *ipen, *upen, logpen;
 static int   *zflag;
 static double *fdiag, *jdiag;
 static double scale;
-static SEXP fexpr1, fexpr2,fdensity,rho;
 
 static int debug;
+
 void survreg5(int   *maxiter,   int   *nx,       int   *nvarx, 
 	      double *y,         int   *ny,       double *covar2, 
 	      double *wt2,       double *offset2,  double *beta,  
-	     int   *nstratx,    int   *stratax,  double *ux,    
-	     double *imatx,      double *jmatx,
-	     double *loglik,     int   *flag,     double *eps,
-	     double *tol_chol,   int   *dist,     int   *ddebug,
-             int *ptype2,  	 int   *pdiag2,
-	     int *nfrail2,      int   *frail2,   double *fdiag2,
-	      void *expr1, void *expr2, void *dens, void *Rrho )  {
+	      int   *nstratx,    int   *stratax,  double *ux,    
+	      double *imatx,      double *jmatx,
+	      double *loglik,     int   *flag,     double *eps,
+	      double *tol_chol,   int   *dist,     int   *ddebug,
+	      int *ptype2,  	 int   *pdiag2,
+	      int *nfrail2,      int   *frail2,   double *fdiag2,
+	      /* R callback data */
+	      void *fexpr1, void *fexpr2, void *density, void *rho
+    )  {
 
     int i,j;	
     int n;
-    double *newbeta;
-    /*	   *savediag;*/
-    /*double temp;*/
+    double *newbeta,
+	   *savediag;
+    double temp;
     int halving, iter;
     double newlk;
-    int lastchance=0; /*-Wall*/
+    int lastchance;
 
     n = *nx;
     nvar = *nvarx;
@@ -110,12 +116,6 @@ void survreg5(int   *maxiter,   int   *nx,       int   *nvarx,
     frail  = frail2;
     fdiag  = fdiag2;
     wt     = wt2;
-    
-    fexpr1 = (SEXP) expr1;
-    fexpr2 = (SEXP) expr2;
-    fdensity= (SEXP) dens;
-    rho= (SEXP) Rrho;
-
     /*
     ** nvar0 = # of "real" x variables, for iteration
     ** nvar  = # of non-frailty vars = nvar + #sigmas
@@ -183,7 +183,7 @@ void survreg5(int   *maxiter,   int   *nx,       int   *nvarx,
     /*
     ** do the initial iteration step
     */
-    *loglik = dolik(n, beta, 0); 
+    *loglik = dolik(n, beta, 0, fexpr1,fexpr2,density,rho); 
     if (debug >0) {
         fprintf(stderr, "iter=0, loglik=%f\n", loglik[0]);
 	}
@@ -238,7 +238,7 @@ void survreg5(int   *maxiter,   int   *nx,       int   *nvarx,
     ** here is the main loop
     */
     halving =0 ;             /* >0 when in the midst of "step halving" */
-    newlk = dolik(n, newbeta, 0); 
+    newlk = dolik(n, newbeta, 0, fexpr1,fexpr2,density,rho); 
 
     /* some day put in a call to simplex if in trouble */
     for (iter=1; iter<=*maxiter; iter++) {
@@ -291,7 +291,7 @@ void survreg5(int   *maxiter,   int   *nx,       int   *nvarx,
 			}
 		    }
 
-		newlk = dolik(n, newbeta, 1);
+		newlk = dolik(n, newbeta, 1, fexpr1,fexpr2,density,rho);
 		}
 	    if (debug>0) {
 		fprintf(stderr,"   Step half -- %d steps, newlik=%f\n", 
@@ -335,7 +335,7 @@ void survreg5(int   *maxiter,   int   *nx,       int   *nvarx,
 		** Try a Fisher step instead  -- 
 		*/
 		for (i=0; i<nvar2; i++) newbeta[i] = beta[i]; /* go back */
-		newlk = dolik(n, newbeta, 0);   /*recreate u, fdiag, etc */
+		newlk = dolik(n, newbeta, 0, fexpr1,fexpr2,density,rho);   /*recreate u, fdiag, etc */
 		i = cholesky3(JJ, nvar2, nf, jdiag, *tol_chol);
 		chsolve3(JJ, nvar2, nf, jdiag, u);
 		if (debug>0)
@@ -353,11 +353,11 @@ void survreg5(int   *maxiter,   int   *nx,       int   *nvarx,
 		*/
 		*flag=1000;
 		for (i=0; i<nvar2; i++) newbeta[i] = beta[i]; /* go back */
-		newlk = dolik(n, newbeta, 0);   /*recreate u, fdiag, etc */
+		newlk = dolik(n, newbeta, 0, fexpr1,fexpr2,density,rho);   /*recreate u, fdiag, etc */
 		break;
 		}
 	    }
-	newlk = dolik(n, newbeta, 0);
+	newlk = dolik(n, newbeta, 0, fexpr1,fexpr2,density,rho);
 	}   /* return for another iteration */
 
     *loglik = newlk;
@@ -387,7 +387,8 @@ void survreg5(int   *maxiter,   int   *nx,       int   *nvarx,
 ** This routine calculates the loglik, but more important
 **   it sets up the arrays for the main computation
 */
-static double dolik(int n, double *beta, int whichcase) {
+static double dolik(int n, double *beta, int whichcase, 
+		    void *fexpr1, void *fexpr2, void *density, void *rho) {
     int person, i,j,k;
     int strata;
     double  eta,
@@ -399,8 +400,8 @@ static double dolik(int n, double *beta, int whichcase) {
     double  sz;
     double  sig2;
     double  w;
-    double g=0, dg=0, ddg=0, dsig=0, ddsig=0, dsg=0;/*-Wall*/
-    int fgrp=0;/*-Wall*/
+    double g, dg, ddg, dsig, ddsig, dsg;
+    int fgrp;
     int icount;
 
     loglik=0;
@@ -442,7 +443,7 @@ static double dolik(int n, double *beta, int whichcase) {
 	    }
 	}
 
-    surv_callback(z, funs[0],n,fdensity,rho);  /* treat them both as a vector */
+    surv_callback(z, funs[0], n,density, rho);  /* treat them both as a vector */
 
     /*
     ** calculate the first and second derivative wrt eta,
@@ -547,7 +548,7 @@ static double dolik(int n, double *beta, int whichcase) {
 	    }
 	loglik += g * wt[person];
 	if (debug>3) {
-	    fprintf(stderr," z=%f g=%f, dg=%f, wt=%f\n", zz, g, dg, wt[person]);
+	    fprintf(stderr," z=%f g=%f, dg=%f, wt=%f\n", z, g, dg, wt[person]);
 	    fflush(stderr);
 	    }
      
@@ -603,7 +604,7 @@ static double dolik(int n, double *beta, int whichcase) {
     */
     if (ptype==1 || ptype==3) {
 	/* there are sparse terms */
-	cox_callback(1, beta, upen, ipen, &logpen, zflag,nf, fexpr1,rho); 
+	cox_callback(1, beta, upen, ipen, &logpen, zflag,nf, fexpr1, rho); 
 	if (zflag[0] ==1) {  /* force terms to zero */
 	    for (i=0; i<nf; i++) {
 		u[i]=0;
@@ -627,7 +628,7 @@ static double dolik(int n, double *beta, int whichcase) {
 
     if (ptype==2 || ptype==3) {
 	/* there are non-sparse terms */
-	cox_callback(2, beta+nf, upen, ipen, &logpen, zflag,nvar,fexpr2,rho);
+	cox_callback(2, beta+nf, upen, ipen, &logpen, zflag, nvar, fexpr2, rho);
 	loglik += logpen;
 	if (pdiag==0) {
 	    for (i=0; i<nvar; i++) {

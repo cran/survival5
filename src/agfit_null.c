@@ -1,4 +1,5 @@
 /*  SCCS @(#)agfit_null.c	5.2 10/27/98
+/*
 ** Fit a "null" model.  We just need the loglik
 **
 ** Input

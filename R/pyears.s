@@ -1,5 +1,5 @@
-#SCCS  @(#)pyears.s	5.1 08/30/98
-pyears <- function(formula=formula(data), data=sys.frame(sys.parent()),
+#SCCS  @(#)pyears.s	5.4 02/19/99
+pyears <- function(formula=formula(data), data=sys.parent(),
 	weights, subset, na.action,
 	ratetable=survexp.us, scale=365.25,  expect=c('event', 'pyears'),
 	model=F, x=F, y=F) {
@@ -15,7 +15,7 @@ pyears <- function(formula=formula(data), data=sys.frame(sys.parent()),
 	    stop("Pyears cannot have interaction terms")
     m$formula <- Terms
     m[[1]] <- as.name("model.frame")
-    m <- eval(m, sys.frame(sys.parent()))
+    m <- eval(m, sys.parent())
 
     Y <- model.extract(m, 'response')
     if (is.null(Y)) stop ("Follow-up time must appear in the formula")
@@ -54,13 +54,11 @@ pyears <- function(formula=formula(data), data=sys.frame(sys.parent()),
 	ovars <- (dimnames(attr(Terms, 'factors'))[[1]])[-c(1, rate)]
 	rtemp <- match.ratetable(m[,rate], ratetable)
 	R <- rtemp$R
-	if (!is.null(rtemp$call)) {  #need to drop some dimensions from ratetable
+	if (!is.null(rtemp$call)) {#need to drop some dimensions from ratetable
 	    ratetable <- eval(parse(text=rtemp$call))
 	    }
 	}
-    else {
-	ovars <- (dimnames(attr(Terms, 'factors'))[[1]])[-1]
-	}
+    else ovars <- (dimnames(attr(Terms, 'factors'))[[1]])[-1]
 
     # Now process the other (non-ratetable) variables
     if (length(ovars)==0)  {
@@ -141,8 +139,7 @@ pyears <- function(formula=formula(data), data=sys.frame(sys.parent()),
 			pn    =double(osize),
 			pcount=double(if(is.Surv(Y)) osize else 1),
 			pexpect=double(osize),
-			offtable=double(1),
-                    PACKAGE="survival5")[17:21]
+			offtable=double(1),PACKAGE="survival5")[17:21]
 	}
     else {
 	temp <- .C('pyears2',
@@ -158,8 +155,7 @@ pyears <- function(formula=formula(data), data=sys.frame(sys.parent()),
 			pyears=double(osize),
 			pn    =double(osize),
 			pcount=double(if(is.Surv(Y)) osize else 1),
-			offtable=double(1),
-                    PACKAGE="survival5") [10:13]
+			offtable=double(1),PACKAGE="survival5") [10:13]
 	}
 
     if (prod(odims) ==1) {  #don't make it an array

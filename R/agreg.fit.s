@@ -1,6 +1,6 @@
-#SCCS @(#)agreg.fit.s	4.18 12/22/98
-agreg.fit <- function(x, y, strata, offset, init, iter.max,
-			eps, toler.chol, weights, method, rownames)
+# SCCS @(#)agreg.fit.s	4.22 06/12/00
+agreg.fit <- function(x, y, strata, offset, init, control,
+			weights, method, rownames)
     {
     n <- nrow(y)
     nvar <- ncol(x)
@@ -9,128 +9,128 @@ agreg.fit <- function(x, y, strata, offset, init, iter.max,
     event <- y[,3]
 
     # Sort the data (or rather, get a list of sorted indices)
+    #  For both stop and start times, the indices go from last to first
     if (length(strata)==0) {
-	sorted <- order(stopp, -event)
-	newstrat <- as.integer(rep(0,n))
+	sort.end  <- order(-stopp, event)
+	sort.start<- order(-start)
+	newstrat  <- n
 	}
     else {
-	sorted <- order(strata, stopp, -event)
-	strata <- (as.numeric(strata))[sorted]
-	newstrat <- as.integer(c(1*(diff(strata)!=0), 1))
+	sort.end  <- order(strata, -stopp, event)
+	sort.start<- order(strata, -start)
+	newstrat  <- cumsum(table(strata))
 	}
     if (missing(offset) || is.null(offset)) offset <- rep(0.0, n)
     if (missing(weights)|| is.null(weights))weights<- rep(1.0, n)
-    else {
-	if (any(weights<=0)) stop("Invalid weights, must be >0")
-	weights <- weights[sorted]
-	}
-    sstart <- as.double(start[sorted])
-    sstop <- as.double(stopp[sorted])
-    sstat <- as.integer(event[sorted])
+    else if (any(weights<=0)) stop("Invalid weights, must be >0")
 
     if (is.null(nvar)) {
 	# A special case: Null model.  Just return obvious stuff
-	score <- as.double(exp(offset[sorted]))
-	agfit <- .C("agfit_null",
-		       as.integer(n),
-		       as.integer(method=='efron'),
-		       sstart, sstop,
-		       sstat,
-		       as.double(offset[sorted]),
-		       as.double(weights),
-		       newstrat,
-		       loglik=double(1),
-                    PACKAGE="survival5")
+        #  To keep the C code to a small set, we call the usual routines, but
+	#  with a dummy X matrix and 0 iterations
+	nvar <- 1
+	x <- matrix(1:n, ncol=1)
+	maxiter <- 0
+	nullmodel <- T
+	}
+    else {
+	nullmodel <- F
+	maxiter <- control$iter.max
+	}
 
-	agres <- .C("agmart",
-		       as.integer(n),
-		       as.integer(method=='efron'),
-		       sstart, sstop,
-		       sstat,
-		       score,
-		       as.double(weights),
-		       newstrat,
-		       resid=double(n),
-                    PACKAGE="survival5")
+    if (!is.null(init)) {
+	if (length(init) != nvar) stop("Wrong length for inital values")
+	}
+	else init <- rep(0,nvar)
+    agfit <- .C("agfit3", iter= as.integer(maxiter),
+		as.integer(n),
+		as.integer(nvar), 
+		as.double(start), 
+		as.double(stopp),
+		as.integer(event),
+		as.double(x),
+		as.double(offset - mean(offset)),
+		as.double(weights),
+		as.integer(length(newstrat)),
+		as.integer(newstrat),
+		as.integer(sort.end-1),
+		as.integer(sort.start-1),
+		means = double(nvar),
+		coef= as.double(init),
+		u = double(nvar),
+		imat= double(nvar*nvar), loglik=double(2),
+		flag=integer(1),
+		double(2*nvar*nvar +nvar*3 + n),
+		as.double(control$eps),
+		as.double(control$toler.chol),
+		sctest=as.double(method=='efron'),PACKAGE="survival5" )
 
-	resid _ double(n)
-	resid[sorted] <- agres$resid
+    var <- matrix(agfit$imat,nvar,nvar)
+    coef <- agfit$coef
+    if (agfit$flag < nvar) which.sing <- diag(var)==0
+	else which.sing <- rep(F,nvar)
+
+    infs <- abs(agfit$u %*% var)
+    if (maxiter >1) {
+	if (agfit$flag == 1000)
+		warning("Ran out of iterations and did not converge")
+	    else {
+		infs <- ((infs > control$eps) & 
+			 infs > control$toler.inf*abs(coef))
+		if (any(infs))
+			warning(paste("Loglik converged before variable ",
+				      paste((1:nvar)[infs],collapse=","),
+				      "; beta may be infinite. "))
+		}
+	}
+    lp  <- x %*% coef + offset - sum(coef *agfit$means)
+    score <- as.double(exp(lp))
+
+    agres <- .C("agmart2",
+		as.integer(n),
+		as.integer(method=='efron'),
+		as.double(start), 
+		as.double(stopp),
+		as.integer(event),
+		as.integer(length(newstrat)), 
+		as.integer(newstrat),
+		as.integer(sort.end-1), 
+		as.integer(sort.start-1),
+		score,
+		as.double(weights),
+		resid=double(n),
+		double(2*sum(event)),PACKAGE="survival5")
+    resid <- agres$resid
+
+    if (nullmodel) {
+	resid <- agres$resid
 	names(resid) <- rownames
 
-	list(loglik=agfit$loglik,
+	list(loglik=agfit$loglik[2],
 	     linear.predictors = offset,
 	     residuals = resid,
 	     method= c("coxph.null", 'coxph') )
 	}
-
     else {
-	if (!is.null(init)) {
-	    if (length(init) != nvar) stop("Wrong length for inital values")
-	    }
-	else init <- rep(0,nvar)
-
-	agfit <- .C("agfit2", iter= as.integer(iter.max),
-		       as.integer(n),
-		       as.integer(nvar), sstart, sstop,
-		       sstat,
-		       x= x[sorted,],
-		       as.double(offset[sorted] - mean(offset)),
-		       as.double(weights),
-		       newstrat,
-		       means = double(nvar),
-		       coef= as.double(init),
-		       u = double(nvar),
-		       imat= double(nvar*nvar), loglik=double(2),
-		       flag=integer(1),
-		       double(2*nvar*nvar +nvar*3 + n),
-		       integer(n),
-		       as.double(eps),
-		       as.double(toler.chol),
-		       sctest=as.double(method=='efron'),
-                    PACKAGE="survival5" )
-
-	var <- matrix(agfit$imat,nvar,nvar)
-	coef <- agfit$coef
-	if (agfit$flag < nvar) which.sing <- diag(var)==0
-	else which.sing <- rep(F,nvar)
-
-	infs <- abs(agfit$u %*% var)
-	if (iter.max >1) {
-	    if (agfit$flag == 1000)
-		   warning("Ran out of iterations and did not converge")
-	    else if (any((infs > eps) & (infs > sqrt(eps)*abs(coef))))
-		warning(paste("Loglik converged before variable ",
-			  paste((1:nvar)[(infs>eps)],collapse=","),
-			  "; beta may be infinite. "))
-	    }
-
 	names(coef) <- dimnames(x)[[2]]
-	lp  <- x %*% coef + offset - sum(coef *agfit$means)
-	score <- as.double(exp(lp[sorted]))
-	agres <- .C("agmart",
-		       as.integer(n),
-		       as.integer(method=='efron'),
-		       sstart, sstop,
-		       sstat,
-		       score,
-		       as.double(weights),
-		       newstrat,
-		       resid=double(n),
-                    PACKAGE="survival5")
-
-	resid _ double(n)
-	resid[sorted] <- agres$resid
 	names(resid) <- rownames
 	coef[which.sing] <- NA
 
 	list(coefficients  = coef,
-		    var    = var,
-		    loglik = agfit$loglik,
-		    score  = agfit$sctest,
-		    iter   = agfit$iter,
-		    linear.predictors = as.vector(lp),
-		    residuals = resid,
-		    means = agfit$means,
-		    method= 'coxph')
+	     var    = var,
+	     loglik = agfit$loglik,
+	     score  = agfit$sctest,
+	     iter   = agfit$iter,
+	     linear.predictors = as.vector(lp),
+	     residuals = resid,
+	     means = agfit$means,
+	     method= 'coxph')
 	}
     }
+
+
+
+#setInterface('agreg2', language='C', 
+#	     classes=c("
+
+

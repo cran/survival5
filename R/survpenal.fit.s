@@ -14,7 +14,7 @@ survpenal.fit<- function(x, y, weights, offset, init, controlvals, dist,
 
     if (!is.matrix(x)) stop("Invalid X matrix ")
     n <- nrow(x)
-    nvar <- ncol(x)
+    nvar <- ncol(x) 
     ny <- ncol(y)
     if (is.null(offset)) offset <- rep(0,n)
     if (missing(weights)|| is.null(weights)) weights<- rep(1.0,n)
@@ -231,7 +231,7 @@ survpenal.fit<- function(x, y, weights, offset, init, controlvals, dist,
 		    stop("Length error in coxlist2")
 	    coxlist2
           }
-        if (debug) debug(f.expr2)
+        ##if (debug) debug(f.expr2)
 	if (full.imat) {
 	    coxlist2 <- list(coef=double(nvar2), first=double(nvar2), 
 		    second= double(nvar2*nvar2), penalty=0.0, flag=rep(F,nvar2))

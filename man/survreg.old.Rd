@@ -9,7 +9,9 @@ link=c("log", "identity"),
 dist=c("extreme", "logistic", "gaussian", "exponential"),
 fixed, eps=0.0001, init, iter.max=10, model=F, x=F, y=F, \dots)
 }
-\arguments{
+\description{
+  This routine is a backwards-compatible interface to the improved \link{survreg} function, which is better.
+}\arguments{
 \item{formula}{
 a formula expression as for other regression models.
 See the documentation for \code{lm} and \code{formula} for details.
@@ -59,9 +61,7 @@ all the optional arguments to lm, including \code{singular.ok}.
 \value{
 an object of class \code{survreg} is returned, which inherits from class \code{glm}.
 }
-\section{Computation}{
-  This routine is a backwards-compatible interface to the improved \link{survreg} function, which is better.
-}
+
 \examples{
 data(ovarian)
 survreg.old(Surv(futime, fustat) ~ ecog.ps + rx, ovarian, dist='extreme',

@@ -1,6 +1,6 @@
 #SCCS 03/25/97 @(#)summary.coxph.s	4.8
 summary.coxph <-
- function(cox, table = T, coef = T, conf.int = 0.95, scale = 1,
+ function(cox, table = TRUE, coef = TRUE, conf.int = 0.95, scale = 1,
 			digits = max(options()$digits - 4, 3))
     {
     if (!is.null(cl<- cox$call)) {

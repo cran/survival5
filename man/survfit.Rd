@@ -1,5 +1,8 @@
 \name{survfit}
 \alias{survfit}
+\alias{survfit.km}
+\alias{survfit.coxph.null}
+\alias{survfit.coxph}
 \title{
 Compute a Survival Curve for Censored Data
 }

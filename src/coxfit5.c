@@ -1,15 +1,4 @@
-/**
-*** Modified for R by thomas lumley, April 1999
-***
-*** Main changes are inside the cox_callback stuff
-***
-*** Can we assume that arguments to .C are PROTECTed?
-***
-*** ? Use C_alloc, C_free instead of Calloc, Free so that
-*** we don't get memory leaks on error conditions. These don't zero the memory.
-**/      
-
-
+/* SCCS @(#)coxfit5.c	1.1 06/12/00
 /* A reentrant version of the Coxfit program, for random effects modeling
 **   with reasonable efficiency (I hope).  The important arrays are saved
 **   from call to call so as to speed up the process.  The x-matrix itself
@@ -34,10 +23,8 @@
 **                    :row 2: status for the ith person    1=dead , 0=censored
 **       covar(nv,n)  :covariates for person i.
 **                        Note that S sends this in column major order.
-**       strata(n)    :marks the strata.  Will be 1 if this person is the
-**                       last one in a strata.  If there are no strata, the
-**                       vector can be identically zero, since the nth person's
-**                       value is always assumed to be = to 1.
+**       strata(nstrat):sizes of the strata, cumulative
+**       sort 	     :  sort order for the obs, last to first within strata
 **       offset(n)    :offset for the linear predictor
 **       weights(n)   :case weights
 **       eps          :tolerance for convergence.  Iteration continues until
@@ -89,45 +76,37 @@
 */
 #include <math.h>
 #include <stdio.h>
-#include "Rdefines.h"
-#include "Rinternals.h"
+#include "survS.h"
 #include "survproto.h"
-
 
 static double **covar, **cmat, **cmat2;
 static double *mark, *wtave;
 static double *a, *oldbeta, *a2;
 static double *offset, *weights;
-static int    *status, *frail, *strata;
-static double *score, *Time;
+static int    *status, *frail, *sort;
+static double *score, *time;
 static double *tmean;
 static int    ptype, pdiag;
 static double *ipen, *upen, logpen;
 static int   *zflag;
 
-/**
-*** R environment and functions
- **/
-static SEXP  rho,fexpr1,fexpr2;
-
-
 static double **cmatrix(double *, int, int);
 
-
-void coxfit4_a(int *nusedx, int *nvarx, double *yy, 
+void coxfit5_a(int *nusedx, int *nvarx, double *yy, 
 	       double *covar2, double *offset2,
-	       double *weights2, int *strata2,
+	       double *weights2, int *strata,  int *sorted,
 	       double *means, double *beta, double *u, 
 	       double *loglik, 
 	       int *methodx, int *ptype2, int *pdiag2,
-	       int *nfrail,  int *frail2, void *expr1, void *expr2, void *Rrho)
-{
-
-    int i,j,k, person;
+	       int *nfrail,  int *frail2,
+	       void *fexpr1, void *fexpr2, void *rho
+) {
+    int i,j,k, p, istrat;
+    int ii; 
     int     nused, nvar;
     int    nf, nvar2;
-
-    double  denom=0, zbeta, risk; /*-Wall*/
+    
+    double  denom, zbeta, risk;
     double  temp, temp2;
     double  ndead;
     double  d2, efron_wt;
@@ -140,10 +119,6 @@ void coxfit4_a(int *nusedx, int *nvarx, double *yy,
     nvar2 = nvar + nf;
     ptype = *ptype2;
     pdiag = *pdiag2;
-
-    rho=(SEXP) Rrho;
-    fexpr1= (SEXP) expr1;
-    fexpr2= (SEXP) expr2;
 
     /*
     **  Allocate storage for the arrays and vectors
@@ -165,17 +140,16 @@ void coxfit4_a(int *nusedx, int *nvarx, double *yy,
     offset  = weights + nused;
     score   = offset + nused;
     tmean   = score + nused;
-    Time    = tmean + nvar2;
+    time    = tmean + nvar2;
     status  = Calloc(2*nused, int);
-    strata  = status + nused;
+    sort    = status + nused;
     for (i=0; i<nused; i++) {
 	weights[i] = weights2[i];
 	offset[i]  = offset2[i];
 	status[i]  = yy[nused +i];
-	strata[i]  = strata2[i];
-	Time[i]    = yy[i];
+	sort[i]    = sorted[i];
+	time[i]    = yy[i];
         }
-    strata[nused-1] =1;  /* failsafe */   
 
     /* scratch space for penalty 
     **    upen needs to be max(nvar, nfrail), 
@@ -193,28 +167,37 @@ void coxfit4_a(int *nusedx, int *nvarx, double *yy,
 	frail = Calloc(nused, int);
 	for (i=0; i<nused; i++) frail[i] = frail2[i];
         }
+
     /*
     **   Mark(i) contains the number of tied deaths at this point,
-    **    for the first person of several tied times. It is zero for
-    **    the second and etc of a group of tied times.
+    **    for the last person of several tied times. It is zero for
+    **    all other points.
     **   Wtave contains the average weight for the deaths
     */
     temp=0;
     j=0;
-    for (i=nused-1; i>0; i--) {
-	if ((Time[i]==Time[i-1]) & (strata[i-1] != 1)) {
-	    j += status[i];
-	    temp += status[i]* weights[i];
-	    mark[i]=0;
+    istrat=0;
+    for (i=0; i<nused; i++)
+	mark[i] =0;
+    for (i=0; i<nused; ) {
+	p = sort[i];
+	if (status[p]==1) {
+	    temp = 0;
+	    ndead=0;
+	    for (j=i; j<nused; j++) {
+		k = sort[j];
+		if ((time[k] < time[p]) || (j==strata[istrat])) break;
+		ndead += status[p];
+		temp += weights[k];
+		}
+	    k=sort[j-1];
+	    mark[k] = ndead;
+	    wtave[k] = temp/ndead;
+	    i=j;
+	    if (i==strata[istrat]) istrat++;
 	    }
-	else  {
-	    mark[i] = j + status[i];
-	    wtave[i]= (temp+ status[i]*weights[i])/ mark[i];
-	    temp=0; j=0;
-	    }
+	else i++;
 	}
-    mark[0]  = j + status[0];
-    if (mark[0]>0) wtave[0] = (temp +status[0]*weights[0])/ mark[0];
 
     /*
     ** Subtract the mean from each covar, as this makes the regression
@@ -222,56 +205,60 @@ void coxfit4_a(int *nusedx, int *nvarx, double *yy,
     */
     for (i=0; i<nvar; i++) {
 	temp=0;
-	for (person=0; person<nused; person++) temp += covar[i][person];
+	for (p=0; p<nused; p++) temp += covar[i][p];
 	temp /= nused;
 	means[i] = temp;
-	for (person=0; person<nused; person++) covar[i][person] -=temp;
+	for (p=0; p<nused; p++) covar[i][p] -=temp;
 	}
-	
+
     /*
     ** do the initial iteration step of a no-frailty model
     **   (actually, just a no-sparse-terms model) -- loglik only
     */
     *loglik = 0;
-    for (i=0; i<nvar; i++) u[i] =0;
-
+    for (i=0; i<nvar; i++) {
+	u[i] =0;
+	a[i] = 0;
+	a2[i]=0 ;
+	}
+    denom = 0;
     efron_wt =0;
-    for (person=nused-1; person>=0; person--) {
-	if (strata[person] == 1) {
+    istrat=0;
+    for (ii=0; ii<nused; ii++) {
+	if (ii==strata[istrat]) {
 	    denom = 0;
-	    for (i=0; i<nvar; i++) {
-		a[i] = 0;
-		a2[i]=0 ;
-		}
+	    for (i=0; i<nvar; i++) a[i] = 0;
+	    istrat++;
 	    }
-
-	zbeta = offset[person];    /* form the term beta*z   (vector mult) */
+	
+	p = sort[ii];
+	zbeta = offset[p];    /* form the term beta*z   (vector mult) */
 	for (i=0; i<nvar; i++)
-	    zbeta += beta[i]*covar[i][person];
-	risk = exp(zbeta) * weights[person];
+	    zbeta += beta[i]*covar[i][p];
+	risk = exp(zbeta) * weights[p];
 	denom += risk;
 
-	for (i=0; i<nvar; i++) a[i] += risk*covar[i][person];
-	if (status[person]==1) {
+	for (i=0; i<nvar; i++) a[i] += risk*covar[i][p];
+	if (status[p]==1) {
 	    efron_wt += risk;
-	    *loglik += weights[person]*zbeta;
+	    *loglik += weights[p]*zbeta;
 	    for (i=0; i<nvar; i++) {
-	        u[i] += weights[person]*covar[i][person];
-		a2[i] +=  risk*covar[i][person];
+	        u[i] += weights[p]*covar[i][p];
+		a2[i] +=  risk*covar[i][p];
 		}
 	    }
-	if (mark[person] >0) {  /* once per unique death time */
+	if (mark[p] >0) {  /* once per unique death time */
 	    /*
 	    ** Trick: when 'method==0' then temp=0, giving Breslow's method
 	    */
-	    ndead = mark[person];
+	    ndead = mark[p];
 	    for (k=0; k<ndead; k++) {
 		temp = (double)k * method / ndead;
 		d2= denom - temp*efron_wt;
-		*loglik -= wtave[person] * log(d2);
+		*loglik -= wtave[p] * log(d2);
 		for (i=0; i<nvar; i++) {
 		    temp2 = (a[i] - temp*a2[i])/ d2;
-		    u[i] -= wtave[person] *temp2;
+		    u[i] -= wtave[p] *temp2;
 		    }
 		}
 	    efron_wt =0;
@@ -279,12 +266,13 @@ void coxfit4_a(int *nusedx, int *nvarx, double *yy,
 	    }
 	}   /* end  of accumulation loop */
 
+
     /*
     ** add in the penalty terms
     */
     if (ptype==2 || ptype==3) {
 	/* there are non-sparse terms */
-	cox_callback(2, beta, upen, ipen, &logpen, zflag,nvar,fexpr2,rho);
+	cox_callback(2, beta, upen, ipen, &logpen, zflag, nvar, fexpr2,rho);
 	*loglik += logpen;
         }
     }
@@ -294,27 +282,25 @@ void coxfit4_a(int *nusedx, int *nvarx, double *yy,
 /*
 ** This call is used for iteration
 */
-
-
-void coxfit4_b(int *maxiter, int *nusedx, int *nvarx, 
-	       double *beta, double *u,
+void coxfit5_b(int *maxiter, int *nusedx, int *nvarx, 
+	       int *strata, double *beta, double *u,
 	       double *imat2,  double *jmat2, double *loglik, 
 	       int *flag,  double *eps, double *tolerch, int *methodx, 
-	       int *nfrail, double *fbeta, double *fdiag)
+	       int *nfrail, double *fbeta, double *fdiag,
+	       void *fexpr1, void *fexpr2, void *rho)
 {
-
-    int i,j,k, person;
-    int ii;
+    int i,j,k, p;
+    int ii, istrat, ip;
     int     iter;
     int     nused, nvar;
     int    nf, nvar2;
-    int    fgrp=0; /*-Wall*/
+    int    fgrp;
     int    halving;
 
-    double  denom=0, zbeta, risk; /*-Wall*/
+    double  denom, zbeta, risk;
     double  temp, temp2;
-    double  newlk=0; /*-Wall*/
-    double  d2, efron_wt=0; /*-Wall*/
+    double  newlk;
+    double  d2, efron_wt;
     double  method;
     double  **imat, **jmat;
     double  ndead;
@@ -346,8 +332,10 @@ void coxfit4_b(int *maxiter, int *nusedx, int *nvarx,
 		    jmat[j][i] =0 ;
             }
 
-	for (person=nused-1; person>=0; person--) {
-	    if (strata[person] == 1) {
+	istrat=0;
+	for (ip=0; ip<nused; ip++) {
+	    p = sort[ip];
+	    if (ip==0 || ip==strata[istrat]) {
 		efron_wt =0;
 		denom = 0;
 		for (i=0; i<nvar2; i++) {
@@ -359,59 +347,60 @@ void coxfit4_b(int *maxiter, int *nusedx, int *nvarx,
                         }
 		    }
 		}
-	    
+	    if (ip==strata[istrat]) istrat++;
+
 	    if (nf>0) {
-		fgrp = frail[person] -1;
-		zbeta = offset[person] + fbeta[fgrp];
+		fgrp = frail[p] -1;
+		zbeta = offset[p] + fbeta[fgrp];
 	        }
-	    else zbeta = offset[person];
+	    else zbeta = offset[p];
 
 	    for (i=0; i<nvar; i++)
-		zbeta += beta[i]*covar[i][person];
-	    score[person] = exp(zbeta);
-	    risk = score[person] * weights[person];
+		zbeta += beta[i]*covar[i][p];
+	    score[p] = exp(zbeta);
+	    risk = score[p] * weights[p];
 	    denom += risk;
 
 	    if (nf>0) a[fgrp] += risk;
 	    for (i=0; i<nvar; i++) {
-		a[i+nf] += risk*covar[i][person];
-		if (nf>0) cmat[i][fgrp] += risk*covar[i][person];
+		a[i+nf] += risk*covar[i][p];
+		if (nf>0) cmat[i][fgrp] += risk*covar[i][p];
 		for (j=0; j<=i; j++)
-		    cmat[i][j+nf] += risk*covar[i][person]*covar[j][person];
+		    cmat[i][j+nf] += risk*covar[i][p]*covar[j][p];
 		}
 
-	    if (status[person]==1) {
+	    if (status[p]==1) {
 		efron_wt += risk;
-		newlk += weights[person] *zbeta;
+		newlk += weights[p] *zbeta;
 		if (nf>0) {
-		    u[fgrp] += weights[person];
+		    u[fgrp] += weights[p];
 		    a2[fgrp] += risk;
 		    }
 		for (i=0; i<nvar; i++) {
-		    u[i+nf] += weights[person] *covar[i][person];
-		    a2[i+nf] +=  risk*covar[i][person];
-		    if (nf>0) cmat2[i][fgrp] += risk*covar[i][person];	
+		    u[i+nf] += weights[p] *covar[i][p];
+		    a2[i+nf] +=  risk*covar[i][p];
+		    if (nf>0) cmat2[i][fgrp] += risk*covar[i][p];	
 		    for (j=0; j<=i; j++)
-			cmat2[i][j+nf] += risk*covar[i][person]*covar[j][person];
+			cmat2[i][j+nf] += risk*covar[i][p]*covar[j][p];
    		    }
 		}
 
-	    if (mark[person] >0) {  /* once per unique death time */
-		ndead = mark[person];
+	    if (mark[p] >0) {  /* once per unique death time */
+		ndead = mark[p];
 		for (k=0; k<ndead; k++) {
 		    temp = (double)k* method / ndead;
 		    d2= denom - temp*efron_wt;
-		    newlk -= wtave[person] *log(d2);
+		    newlk -= wtave[p] *log(d2);
 
 		    for (i=0; i<nvar2; i++) {  /* by row of full matrix */
 			temp2 = (a[i] - temp*a2[i])/d2;
 			tmean[i] = temp2;
-			u[i] -= wtave[person] *temp2;
+			u[i] -= wtave[p] *temp2;
 			if (i<nf) fdiag[i] += temp2 * (1-temp2);
 			else {
 			    ii = i-nf;     /*actual row in c/j storage space */
 			    for (j=0; j<=i; j++) 
-				jmat[ii][j] +=  wtave[person]*(
+				jmat[ii][j] +=  wtave[p]*(
                                    (cmat[ii][j] - temp*cmat2[ii][j]) /d2 -
                                           temp2*tmean[j]);
 			    }
@@ -430,7 +419,7 @@ void coxfit4_b(int *maxiter, int *nusedx, int *nvarx,
         */
 	if (ptype==1 || ptype==3) {
 	    /* there are sparse terms */
-    	    cox_callback(1, fbeta, upen, ipen, &logpen, zflag, nf,fexpr1,rho); 
+    	    cox_callback(1, fbeta, upen, ipen, &logpen, zflag, nf,fexpr1, rho); 
 	    if (zflag[0] ==1) {  /* force terms to zero */
 		for (i=0; i<nf; i++) {
 		    u[i]=0;
@@ -449,7 +438,7 @@ void coxfit4_b(int *maxiter, int *nusedx, int *nvarx,
 
 	if (ptype==2 || ptype==3) {
 	    /* there are non-sparse terms */
-	    cox_callback(2, beta, upen, ipen, &logpen, zflag, nvar,fexpr2,rho);
+	    cox_callback(2, beta, upen, ipen, &logpen, zflag, nvar,fexpr2, rho);
 	    newlk += logpen;
 	    if (pdiag==0) {
 		for (i=0; i<nvar; i++) {
@@ -546,7 +535,6 @@ void coxfit4_b(int *maxiter, int *nusedx, int *nvarx,
 
 static double **cmatrix(double *data, int ncol, int nrow)
     {
-
     int i,j;
     double **pointer;
     double *temp;
@@ -570,74 +558,106 @@ static double **cmatrix(double *data, int ncol, int nrow)
 
 static void cmatrix_free(double **data) 
 {
-
     Free(*data);
     Free(data);
     }
 
 
-void coxfit4_c (int *nusedx, int *nvar, int *methodx, double *expect) {
-
+void coxfit5_c (int *nusedx, int *nvar, int *strata, int *methodx, 
+		double *expect) {
     double hazard, 
-           denom=0, /*-Wall*/
+           denom,
            temp, temp2,
            efron_wt,
            ndead, 
            hazard2;
-    int    person,
+    int    p,
            nused,
            method,
-           i, j=0; /*-Wall*/
+	   ip, istrat,
+           i, j;
+    int    scount;   /* number so far in this strata */
 
     nused = *nusedx;
     method= *methodx;
+
     /*
     ** compute the expected number of events for each subject 
     */
-    hazard =0;
-    for (person= nused-1; person>=0; person--) {
-        if (strata[person]==1) denom=0;
-        denom += score[person] * weights[person];
-	expect[person] = denom;
-        }
+    istrat=0;
+    denom =0;
+    for (ip=0; ip<nused; ip++) {
+	p = sort[ip];
 
-    for (person=0; person<nused; person++) {
-	if (mark[person] >0) {
-	    ndead = mark[person];
-	    denom = expect[person];
+        if (ip==strata[istrat]) {
+	    denom=0;
+	    istrat++;
+	    }
+        denom += score[p] * weights[p];
+
+	if (mark[p] >0) {
+	    /*
+	    ** Compute the size of the hazard jump at this point, with the
+	    **  total jump saved (temporarily) in "expect", and the Efron
+	    **  amount in "weights".  It applies to deaths at this point.
+	    */
+	    ndead = mark[p];
 	    temp2  = 0; 
 	    efron_wt =0;
-	    for (i=person; Time[i]==Time[person]; i++) {
-		efron_wt += score[i]*status[i] * weights[i];
-		temp2 += status[i] * weights[i];
-		if (strata[i]==1) break;
+	    for (j=0; j<ndead; j++) {  
+		/* walk backwards in ip, over the tied deaths */
+		i = sort[ip-j];
+		efron_wt += score[i]* weights[i];
+		temp2    += weights[i];
 	        }
         
-            if (ndead<2 || method==0) {
-                hazard += temp2/denom;
-		hazard2 = hazard;
-	        }
+            if (ndead<2 || method==0)  {
+		expect[p]  = temp2/denom;
+		weights[p] = temp2/denom;
+		}
 	    else {
-                hazard2 = hazard;
+		hazard =0;
+		hazard2=0;
 		temp2 /= ndead;
                 for (j=0; j<ndead; j++) {
                     temp = j /ndead;
                     hazard +=  temp2/(denom - efron_wt* temp);
                     hazard2+=  temp2*(1-temp)/(denom - efron_wt* temp);
                     }
+		expect[p]  = hazard;
+		weights[p] = hazard2;
 	        }
-
-	    for (i=person; Time[i]==Time[person]; i++) {
-		if (status[i]==0) expect[i] = score[i]*hazard;
-		else              expect[i] = score[i]*hazard2;
-		j=i;
-		if (strata[i]==1) break;
-	        }
-	    person =j;
 	    }
-	else expect[person] = score[person]*hazard;
-	if (strata[person]==1) hazard=0;
-        }
+	}
+    /*
+    ** Now compute cumulative hazard,
+    **  and store in the "expect" vector
+    */
+    hazard=0;
+    for (ip=nused-1; ip>=0; ) {
+	p = sort[ip];
+	if (status[p] >0) {
+	    ndead = mark[p];
+	    temp  =  expect[p];  
+	    hazard2 =weights[p];
+
+	    for (j=0; j<ndead; j++) {
+		i = sort[ip-j];
+		expect[i] = score[i]*(hazard + hazard2);
+		}
+	    ip -= ndead;
+	    hazard += temp;
+	    }
+	else {
+	    expect[p] = hazard * score[p];
+	    ip--;
+	    }
+
+	if (strata[istrat]==ip) {
+	    hazard=0;
+	    istrat--;
+	    }
+	}
     
     /*
     ** Free up the extra memory

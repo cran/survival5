@@ -1,4 +1,5 @@
 /*  SCCS %% 10/27/98
+/*
 ** Program to mimic a set of nested do loops
 **
 **  Usual calling sequence would be

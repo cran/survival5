@@ -1,4 +1,5 @@
 /* SCCS @(#)survreg2.c	1.5 02/06/99
+/*
 ** Fit one of several censored data distributions
 **
 ** Input
@@ -52,9 +53,7 @@
 #include <float.h>
 #include "survS.h"
 #include "survproto.h"
-#include <R_ext/Mathlib.h>
 
-#define  PI	M_PI
 #define  SPI    2.506628274631001     /* sqrt(2*pi) */
 #define  ROOT_2 1.414213562373095
 
@@ -75,18 +74,20 @@ static double *u, *wt;
 static double scale;
 
 static int debug;
-/* need to have the same prototype as survreg3, thus placeholders*/
 void survreg2(int   *maxiter,   int   *nx,    int   *nvarx, 
 	     double *y,          int   *ny,    double *covar2, double *wtx,
 	     double *offset2,    double *beta,  int   *nstratx, 
 	     int   *stratax,    double *ux,    double *imatx, 
 	     double *loglik,     int   *flag,  double *eps,
-	     double *tol_chol,   int   *dist,  int   *ddebug, void *placeholder1, void *placeholder2) {
+	     double *tol_chol,   int   *dist,  int   *ddebug,
+	      /* need same prototype as survreg3 */
+	      void *placeholder1, void *placeholder2)
+{
     int i,j;	
     int n;
     double *newbeta,
 	   *savediag;
-    /*double temp=0; -Wall*/
+    double temp;
     int halving, iter;
     double newlk;
 
@@ -296,7 +297,7 @@ static double dolik(int n, double *beta, int whichcase) {
     double  sz;
     double  sig2;
     static double  funs[4], ufun[4];
-    double g=0, dg=0, ddg=0, dsig=0, ddsig=0, dsg=0;/*-Wall*/
+    double g, dg, ddg, dsig, ddsig, dsg;
 
 
     for (i=0; i<nvar2; i++) {
@@ -518,12 +519,12 @@ static void gauss_d(double z, double ans[4], int j)
 		ans[3] = z*z -1;
 		break;
 	case 2: if (z>0) {
-	            ans[0] = pnorm5(z,0,1,1,0); /*(1 + erf(z/ROOT_2))/2;*/
-		    ans[1] = pnorm5(-z,0,1,1,0); /* erfc(z/ROOT_2) /2;*/
+		    ans[0] = (1 + erf(z/ROOT_2))/2;
+		    ans[1] =  erfc(z/ROOT_2) /2;
 		    }
 		else {
-		    ans[1] = pnorm5(-z,0,1,1,0); /*(1 + erf(-z/ROOT_2))/2;*/
-		    ans[0] = pnorm5(z,0,1,1,0); /* erfc(-z/ROOT_2) /2;*/
+		    ans[1] = (1 + erf(-z/ROOT_2))/2;
+		    ans[0] =  erfc(-z/ROOT_2) /2;
 		    }
 		ans[2] = f;
 		ans[3] = -z*f;

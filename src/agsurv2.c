@@ -1,4 +1,5 @@
 /*  SCCS @(#)agsurv2.c	5.4 11/04/98
+/*
 ** Fit the survival curve, the special case of an Anderson-Gill style data
 **   This program differs from survfit in several key ways:
 **       Only returns data at the event times, not at censoring times
@@ -56,7 +57,7 @@ void agsurv2(int   *sn,      int   *snvar,    double *y,
     double *start, *stop, *event;
     int n, nvar;
     int nsurv, type, vartype;
-    int kk=0, psave; /*-Wall*/
+    int kk, psave;
     int deaths;
     double *a, *a2;
     int ncurve;
@@ -69,7 +70,7 @@ void agsurv2(int   *sn,      int   *snvar,    double *y,
 	nsave,
 	person;
     double time,
-	   weight=1, /*-Wall*/
+	   weight,
 	   e_denom,
 	   denom;
     double crisk,

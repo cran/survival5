@@ -1,6 +1,6 @@
 
 R : Copyright 2000, The R Development Core Team
-Version 1.0.0  (February 29, 2000)
+Version 1.2.0 Under development (unstable) (2000-11-11)
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
@@ -152,13 +152,13 @@ n= 210
 +     donpath[i+1,] <- c(fit$coef, log(fit$scale))
 +     }
 Warning messages: 
-1: Ran out of iterations and did not converge in: survreg.fit(X, Y, weights, offset, init = init, controlvals = controlvals,  
-2: Ran out of iterations and did not converge in: survreg.fit(X, Y, weights, offset, init = init, controlvals = controlvals,  
-3: Ran out of iterations and did not converge in: survreg.fit(X, Y, weights, offset, init = init, controlvals = controlvals,  
-4: Ran out of iterations and did not converge in: survreg.fit(X, Y, weights, offset, init = init, controlvals = controlvals,  
-5: Ran out of iterations and did not converge in: survreg.fit(X, Y, weights, offset, init = init, controlvals = controlvals,  
-6: Ran out of iterations and did not converge in: survreg.fit(X, Y, weights, offset, init = init, controlvals = controlvals,  
-7: Ran out of iterations and did not converge in: survreg.fit(X, Y, weights, offset, init = init, controlvals = controlvals,  
+1: Ran out of iterations and did not converge in: survreg.fit(X, Y, weights, offset, init = init, controlvals = control,  
+2: Ran out of iterations and did not converge in: survreg.fit(X, Y, weights, offset, init = init, controlvals = control,  
+3: Ran out of iterations and did not converge in: survreg.fit(X, Y, weights, offset, init = init, controlvals = control,  
+4: Ran out of iterations and did not converge in: survreg.fit(X, Y, weights, offset, init = init, controlvals = control,  
+5: Ran out of iterations and did not converge in: survreg.fit(X, Y, weights, offset, init = init, controlvals = control,  
+6: Ran out of iterations and did not converge in: survreg.fit(X, Y, weights, offset, init = init, controlvals = control,  
+7: Ran out of iterations and did not converge in: survreg.fit(X, Y, weights, offset, init = init, controlvals = control,  
 > points(donpath[,1], donpath[,2])
 > lines(donpath[,1], donpath[,2], col=4)
 > 
@@ -360,7 +360,7 @@ frailty(grp, theta = 0.1)                       10.4 2.15 0.0067
 Scale= 0.301 
 
 Iterations: 1 outer, 6 Newton-Raphson
-     Variance of random effect= 0.1   EM likelihood = -11.8 
+     Variance of random effect= 0.1   I-likelihood = -11.8 
 Degrees of freedom for terms= 0.3 2.2 0.7 
 Likelihood ratio test=13.8  on 1.1 df, p=0.00027  n= 19 
 > 
@@ -842,7 +842,7 @@ rfit1  4.902437 -0.2189405 0.2025429
   0.1346009   0.1346009   0.1224049   0.1207863 
 > apply(temp,2,mean)
          surv   surv.sparse           cox    cox.sparse 
- 1.320558e-18 -2.641116e-18 -1.110223e-18  5.499073e-18 
+-2.025290e-18 -1.186117e-18  3.642919e-19 -3.330669e-18 
 > 
 > # The parametric model gives the coefficients less variance for the
 > #  two fits, for the same df, but the scaled results are similar.

@@ -107,10 +107,8 @@ a list with components \code{x} and \code{y}, containing the coordinates of the 
 on each of the curves (but not the confidence limits).  
 This may be useful for labeling.
 }
-\section{Side Effects}{
+\description{
 A plot of survival curves is produced, one curve for each strata.
-}
-\section{DETAILS}{
 The \code{log=T} option does extra work to avoid log(0), and to try to create a
 pleasing result.  If there are zeros, they are plotted by default at
 0.8 times the smallest non-zero value on the curve(s).

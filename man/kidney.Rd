@@ -20,3 +20,4 @@ Data on the recurrence times to infection, at the point of insertion of
   survival5 does not reproduce the original analysis.
 }
 \source{McGilchrist and Aisbett, Biometrics 47, 461-66, 1991}
+\keyword{survival5}

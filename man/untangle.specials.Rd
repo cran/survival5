@@ -46,4 +46,5 @@ if (length(temp$vars)) {
     }
 else X <- model.matrix(TT, m)
 }}
+\keyword{survival}
 % Converted by Sd2Rd version 0.3-2.

@@ -1,11 +1,12 @@
-/*  SCCS @(#)chinv2.c	5.2 10/27/98
-** matrix inversion, given the cholesky decomposition
+/*  SCCS @(#)chinv2.c	5.3 07/15/99
+/*
+** matrix inversion, given the FDF' cholesky decomposition
 **
 ** input  **matrix, which contains the chol decomp of an n by n
 **   matrix in its lower triangle.
 **
-** returned: the upper triangle will contain the inverse
-**            below the diagonal will be junk
+** returned: the upper triangle + diagonal contain (FDF')^{-1}
+**            below the diagonal will be F inverse
 **
 **  Terry Therneau
 */

@@ -1,4 +1,4 @@
-# SCCS @(#)frailty.gaussian.s	1.4 02/07/99
+# SCCS @(#)frailty.gaussian.s	1.5 05/30/00
 # 
 # Defining function for gaussian frailty fits
 #
@@ -32,8 +32,7 @@ frailty.gaussian <- function(x, sparse=(nclass >5), theta, df,
     else{
 	x <- as.factor(x)
 	class(x) <- c("coxph.penalty",class(x))
-	###attr(x,'contrasts') <- function(n,...) contr.treatment(n,F)
-	attr(x,"contrasts")<- contr.treatment(nclass,contrasts=F)
+	attr(x,'contrasts') <- contr.treatment(nclass,contrasts=F)
         }
     if (!missing(theta) & !missing(df)) 
 	    stop("Cannot give both a df and theta argument")
@@ -105,7 +104,7 @@ frailty.gaussian <- function(x, sparse=(nclass >5), theta, df,
     # If not sparse, give shorter names to the coefficients, so that any
     #   printout of them is readable.
     if (!sparse) {
-	vname <- paste("gamma", levels(x), sep=':')
+	vname <- paste("gauss", levels(x), sep=':')
 	temp <- c(temp, list(varname=vname))
 	}
     attributes(x) <- c(attributes(x), temp)

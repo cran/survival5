@@ -124,11 +124,16 @@ mortality in clinical survival studies.  \emph{Lancet} 1993, 341:872-5.
 }
 \seealso{
 \code{\link{survfit}}, \code{\link{survexp.us}}, \code{\link{survexp.fit}}, \code{\link{pyears}}, \code{\link{date}}
-\examples{\dontrun{
-data(ratetables)
-efit <- survexp( ~ ratetable(sex=sex, year=entry.dt, age=entry.dt-birth.dt))
-plot(survfit(Surv(futime, status) ~1))
+\examples{
+if (require(date)){
+data(ratetables)	
+data(cancer)
+## compare survival to US population
+cancer$year<-rep(as.date("1/1/1980"),nrow(cancer))
+efit <- survexp( ~ ratetable(sex=sex, year=year, age=age*365), times=(1:4)*365,data=cancer)
+plot(survfit(Surv(time, status) ~1,data=cancer))
 lines(efit)
-}}
+}
+}
 \keyword{survival}
 % Converted by Sd2Rd version 0.3-2.

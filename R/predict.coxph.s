@@ -1,4 +1,4 @@
-#SCCS 08/30/98 @(#)predict.coxph.s	4.10
+#SCCS 02/15/99 @(#)predict.coxph.s	4.11
 #What do I need to do predictions --
 #
 #linear predictor:  exists
@@ -20,38 +20,23 @@ function(object, newdata, type=c("lp", "risk", "expected", "terms"),
 		se.fit=F,
 		terms=names(object$assign), collapse, safe=F, ...)
 
-  {
-    if (FALSE & (type=="terms")) stop("This doesn't work in R yet")
+    {
     type <-match.arg(type)
     n <- object$n
     Terms <- object$terms
-    strata <- attr(Terms, "specials")$strata
-    cluster<- attr(Terms, "specials")$cluster
+    strata <- attr(Terms, 'specials')$strata
     dropx <- NULL
-    if (length(cluster)) {
-      if (missing(robust)) robust <- T
-      tempc <- untangle.specials(Terms, 'cluster', 1:10)
-      ord <- attr(Terms, 'order')[tempc$terms]
-      if (any(ord>1)) stop ("Cluster can not be used in an interaction")
-      cluster <- strata(m[,tempc$vars], shortlabel=T)  #allow multiples
-      dropx <- tempc$terms
-    }
     if (length(strata)) {
-      temp <- untangle.specials(Terms, 'strata', 1)
-      dropx <- c(dropx, temp$terms)
-      if (length(temp$vars)==1) strata.keep <- m[[temp$vars]]
-      else strata.keep <- strata(m[,temp$vars], shortlabel=T)
-      strata <- as.numeric(strata.keep)
-    }
-    
-    ## if (length(dropx)) X <- model.matrix(Terms[-dropx], m)[,-1,drop=F]
-    ##`else               X <- model.matrix(Terms, m)[,-1,drop=F]
-    if (length(dropx))
-      Terms2<-Terms[-dropx]
-    else
-      Terms2<-Terms
-    
-    
+	   temp <- untangle.specials(Terms, 'strata', 1)
+	   dropx <- temp$terms
+	   }
+    if (length(attr(Terms, 'specials')$cluster)) {
+	temp <- untangle.specials(Terms, 'cluster', 1)
+	dropx <- c(dropx, temp$terms)
+	}
+    if (length(dropx)) Terms2 <- Terms[-dropx]
+    else  Terms2 <- Terms
+
     offset <- attr(Terms, "offset")
     resp <- attr(Terms, "variables")[attr(Terms, "response")]
 
@@ -113,33 +98,33 @@ function(object, newdata, type=c("lp", "risk", "expected", "terms"),
 	se   <- sqrt(pred)
 	}
 
-    else {  ##terms -- rewritten for R (TSL)
-	asgn <- object$assign
+    else {  #terms is different for R <TSL>
+        asgn <- object$assign
         nterms<-length(terms)
         pred<-matrix(ncol=nterms,nrow=NROW(x))
         dimnames(pred)<-list(rownames(x),terms)
         if (se.fit){
-          se<-matrix(ncol=nterms,nrow=NROW(x))
-          dimnames(se)<-list(rownames(x),terms)
-          R<-object$var
-          ip <- real(NROW(x))
+            se<-matrix(ncol=nterms,nrow=NROW(x))
+            dimnames(se)<-list(rownames(x),terms)
+            R<-object$var
+            ip <- real(NROW(x))
         }
         for (i in 1:nterms){
-          ii<-asgn[[terms[i] ]]
-          pred[,i]<-x[,ii,drop=F]%*%(coef[ii])
-          if (se.fit){
-            for(j in (1:NROW(x))){
-              xi<-x[j,ii,drop=F]*(coef[ii])
-              vci<-R[ii,ii]
-              se[j,i]<-sqrt(sum(xi%*% vci %*%t( xi)))
+            ii<-asgn[[terms[i] ]]
+            pred[,i]<-x[,ii,drop=FALSE]%*%(coef[ii])
+            if (se.fit){
+                for(j in (1:NROW(x))){
+                    xi<-x[j,ii,drop=FALSE]*(coef[ii])
+                    vci<-R[ii,ii]
+                    se[j,i]<-sqrt(sum(xi%*% vci %*%t( xi)))
+                }
             }
-          }
         }
-      }
+    }
 
     if (se.fit) se <- drop(se)
     pred <- drop(pred)
-    #Expand out the missing values in the result
+    ##Expand out the missing values in the result
     # But only if operating on the original dataset
     if (missing(newdata) && !is.null(object$na.action)) {
 	pred <- naresid(object$na.action, pred)

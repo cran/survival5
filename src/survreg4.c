@@ -1,9 +1,5 @@
-/** Uses cox_callback.c
-*** Modifications needed are as for coxreg4.c, documented there
-*** thomas lumley, April 99.
-**/
-
-/* SCCS @(#)survreg4.c	1.4 12/03/98
+/* SCCS @(#)survreg4.c	1.6 02/21/99
+/*
 ** The variant of survreg2 for penalized models
 **
 ** Input
@@ -66,12 +62,8 @@
 #include <math.h>
 #include <float.h>
 #include "survS.h"
-#include "Rdefines.h"
-#include "Rinternals.h"
 #include "survproto.h"
-#include <R_ext/Mathlib.h>
 
-#define  PI	M_PI
 #define  SPI    2.506628274631001     /* sqrt(2*pi) */
 #define  ROOT_2 1.414213562373095
 
@@ -80,7 +72,7 @@ static void logistic_d(double z, double ans[4], int j);
 static void gauss_d(double z, double ans[4], int j);
 static void cauchy_d(double z, double ans[4], int j);
 static void (*sreg_gg)();
-static double dolik(int n, double *beta, int whichcase);
+static double dolik(int n, double *beta, int whichcase, void *fexpr1, void *fexpr2, void *rho);
 
 static int    nvar0, nvar, nvar2, nstrat;
 static double **covar, *wt;
@@ -94,30 +86,30 @@ static double *ipen, *upen, logpen;
 static int   *zflag;
 static double *fdiag, *jdiag;
 static double scale;
-/* R stuff */
-static SEXP fexpr1,fexpr2,rho;
 
 static int debug;
-/* need to have the same prototype as survreg5, thus the placeholder*/
 void survreg4(int   *maxiter,   int   *nx,       int   *nvarx, 
 	      double *y,         int   *ny,       double *covar2, 
 	      double *wt2,       double *offset2,  double *beta,  
-	     int   *nstratx,    int   *stratax,  double *ux,    
-	     double *imatx,      double *jmatx,
-	     double *loglik,     int   *flag,     double *eps,
-	     double *tol_chol,   int   *dist,     int   *ddebug,
-             int *ptype2,  	 int   *pdiag2,
-	     int *nfrail2,      int   *frail2,   double *fdiag2,
-	     void *expr1, void *expr2, void *placeholder, void *Rrho)  {
+	      int   *nstratx,    int   *stratax,  double *ux,    
+	      double *imatx,      double *jmatx,
+	      double *loglik,     int   *flag,     double *eps,
+	      double *tol_chol,   int   *dist,     int   *ddebug,
+	      int *ptype2,  	 int   *pdiag2,
+	      int *nfrail2,      int   *frail2,   double *fdiag2,
+	      /* R callback data: placeholder is to preserve the same
+		 prototype as survreg5 */
+	      void *fexpr1, void *fexpr2, void *placeholder, void *rho
+)  {
 
     int i,j;	
     int n;
-    double *newbeta;
-    /*	   *savediag;*/
-    /*double temp;*/
+    double *newbeta,
+	   *savediag;
+    double temp;
     int halving, iter;
     double newlk;
-    int lastchance=0;/*-Wall*/
+    int lastchance;
 
     n = *nx;
     nvar = *nvarx;
@@ -131,11 +123,6 @@ void survreg4(int   *maxiter,   int   *nx,       int   *nvarx,
     frail  = frail2;
     fdiag  = fdiag2;
     wt     = wt2;
-
-    fexpr1=(SEXP) expr1;
-    fexpr2=(SEXP) expr2;
-    rho=(SEXP) Rrho;
-
     /*
     ** nvar0 = # of "real" x variables, for iteration
     ** nvar  = # of non-frailty vars = nvar + #sigmas
@@ -201,7 +188,7 @@ void survreg4(int   *maxiter,   int   *nx,       int   *nvarx,
     /*
     ** do the initial iteration step
     */
-    *loglik = dolik(n, beta, 0); 
+    *loglik = dolik(n, beta, 0,fexpr1, fexpr2,rho); 
     if (debug >0) {
         fprintf(stderr, "iter=0, loglik=%f\n", loglik[0]);
 	}
@@ -256,7 +243,7 @@ void survreg4(int   *maxiter,   int   *nx,       int   *nvarx,
     ** here is the main loop
     */
     halving =0 ;             /* >0 when in the midst of "step halving" */
-    newlk = dolik(n, newbeta, 0); 
+    newlk = dolik(n, newbeta, 0,fexpr1,fexpr2,rho); 
 
     /* some day put in a call to simplex if in trouble */
     for (iter=1; iter<=*maxiter; iter++) {
@@ -309,7 +296,7 @@ void survreg4(int   *maxiter,   int   *nx,       int   *nvarx,
 			}
 		    }
 
-		newlk = dolik(n, newbeta, 1);
+		newlk = dolik(n, newbeta, 1, fexpr1,fexpr2, rho);
 		}
 	    if (debug>0) {
 		fprintf(stderr,"   Step half -- %d steps, newlik=%f\n", 
@@ -353,7 +340,7 @@ void survreg4(int   *maxiter,   int   *nx,       int   *nvarx,
 		** Try a Fisher step instead  -- 
 		*/
 		for (i=0; i<nvar2; i++) newbeta[i] = beta[i]; /* go back */
-		newlk = dolik(n, newbeta, 0);   /*recreate u, fdiag, etc */
+		newlk = dolik(n, newbeta, 0, fexpr1, fexpr2, rho);   /*recreate u, fdiag, etc */
 		i = cholesky3(JJ, nvar2, nf, jdiag, *tol_chol);
 		chsolve3(JJ, nvar2, nf, jdiag, u);
 		if (debug>0)
@@ -371,11 +358,11 @@ void survreg4(int   *maxiter,   int   *nx,       int   *nvarx,
 		*/
 		*flag=1000;
 		for (i=0; i<nvar2; i++) newbeta[i] = beta[i]; /* go back */
-		newlk = dolik(n, newbeta, 0);   /*recreate u, fdiag, etc */
+		newlk = dolik(n, newbeta, 0, fexpr1,fexpr2, rho);   /*recreate u, fdiag, etc */
 		break;
 		}
 	    }
-	newlk = dolik(n, newbeta, 0);
+	newlk = dolik(n, newbeta, 0, fexpr1, fexpr2,rho);
 	}   /* return for another iteration */
 
     *loglik = newlk;
@@ -405,7 +392,7 @@ void survreg4(int   *maxiter,   int   *nx,       int   *nvarx,
 ** This routine calculates the loglik, but more important
 **   it sets up the arrays for the main computation
 */
-static double dolik(int n, double *beta, int whichcase) {
+static double dolik(int n, double *beta, int whichcase, void *fexpr1, void *fexpr2, void *rho) {
     int person, i,j,k;
     int strata;
     double  eta,
@@ -417,8 +404,8 @@ static double dolik(int n, double *beta, int whichcase) {
     double  sig2;
     double  w;
     static double  funs[4], ufun[4];
-    double g=0, dg=0, ddg=0, dsig=0, ddsig=0, dsg=0;/*-Wall*/
-    int fgrp=0;/*-Wall*/
+    double g, dg, ddg, dsig, ddsig, dsg;
+    int fgrp;
 
     loglik=0;
     for (i=0; i<nf; i++) fdiag[i] =0;
@@ -727,13 +714,13 @@ static void gauss_d(double z, double ans[4], int j)
 		ans[2] = -z;
 		ans[3] = z*z -1;
 		break;
-        case 2: if (z>0) {
-	            ans[0] = pnorm5(z,0,1,1,0); /*(1 + erf(z/ROOT_2))/2;*/
-		    ans[1] = pnorm5(-z,0,1,1,0); /* erfc(z/ROOT_2) /2;*/
+	case 2: if (z>0) {
+		    ans[0] = (1 + erf(z/ROOT_2))/2;
+		    ans[1] =  erfc(z/ROOT_2) /2;
 		    }
 		else {
-		    ans[1] = pnorm5(-z,0,1,1,0); /*(1 + erf(-z/ROOT_2))/2;*/
-		    ans[0] = pnorm5(z,0,1,1,0); /* erfc(-z/ROOT_2) /2;*/
+		    ans[1] = (1 + erf(-z/ROOT_2))/2;
+		    ans[0] =  erfc(-z/ROOT_2) /2;
 		    }
 		ans[2] = f;
 		ans[3] = -z*f;

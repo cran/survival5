@@ -1,4 +1,5 @@
 /*  SCCS @(#)dmatrix.c	5.2 10/27/98
+/*
 ** set up ragged arrays, with #of columns and #of rows
 */
 #include "survS.h"
@@ -6,7 +7,6 @@
 
 double **dmatrix(double *array, int ncol, int nrow)
     {
-
     register int i;
     register double **pointer;
 

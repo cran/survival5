@@ -17,7 +17,10 @@ data(cancer)}
     meal.cal:\tab Calories consumed at meals\cr
     wt.loss:\tab Weight loss in last six months\cr
      }
-}
+ }
+ \description{Survival in patients with lung cancer at Mayo
+     Clinic. Performance scores rate how well the patient can perform
+     usual daily activities.}
 \source{Terry Therneau
 }
 \keyword{datasets}

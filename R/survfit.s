@@ -1,4 +1,4 @@
-#SCCS 09/25/98 @(#)survfit.s	4.13
+#SCCS @(#)survfit.s	4.19 09/08/00
 survfit <- function (formula, data, weights, subset, na.action, ...) {
     call <- match.call()
     # Real tricky -- find out if the first arg is "Surv(...)" without
@@ -9,9 +9,10 @@ survfit <- function (formula, data, weights, subset, na.action, ...) {
 		|| inherits(formula, 'Surv'))  {
 	# The dummy function stops an annoying warning message "Looking for
 	#  'formula' of mode function, ignored one of mode ..."
-	###xx <- function(x) formula(x)
-	###formula <- xx(paste(deparse(call[[2]]), 1, sep="~"))
-        formula<-eval(parse(text=paste(deparse(call[[2]]), 1, sep="~")))
+	##xx <- function(x) formula(x)
+	##formula <- xx(paste(deparse(call[[2]]), 1, sep="~"))
+        formula<-eval(parse(text=paste(deparse(call[[2]]),1,sep="~")))
+        environment(formula)<-parent.frame()
 	}
 
     # if the first object is a Cox model, call survfit.coxph
@@ -28,7 +29,7 @@ survfit <- function (formula, data, weights, subset, na.action, ...) {
 	    stop("Interaction terms are not valid for this function")
 	m$formula <- Terms
 	m[[1]] <- as.name("model.frame")
-	m <- eval(m, sys.frame(sys.parent()))
+	m <- eval(m, parent.frame())
 
 	n <- nrow(m)
 	Y <- model.extract(m, response)
@@ -52,6 +53,9 @@ survfit <- function (formula, data, weights, subset, na.action, ...) {
 		temp$na.action <- attr(m, 'na.action')
 	}
     temp$call <- call
+    # added to change INFs to NAs for C program - cmb 8/25/2000
+    ## I don't think we want this <TSL>
+    ##if (any(is.inf(temp$std.err))) temp$std.err[is.inf(temp$std.err)] <- NA
     temp
     }
 
@@ -73,11 +77,17 @@ survfit <- function (formula, data, weights, subset, na.action, ...) {
     else {
 	if (is.null(i)) keep <- seq(along=fit$time)
 	else {
-	    if (is.character(i)) strat <- rep(names(fit$strata), fit$strata)
-	    else                 strat <- rep(1:length(fit$strata), fit$strata)
+	    if (is.null(fit$ntimes.strata)) strata.var <- fit$strata
+	    else strata.var <- fit$ntimes.strata
+	    if (is.character(i)) strat <- rep(names(fit$strata), strata.var)
+	    else                 strat <- rep(1:length(fit$strata), strata.var)
 	    keep <- seq(along=strat)[match(strat, i, nomatch=0)>0]
 	    if (length(i) <=1) fit$strata <- NULL
 	    else               fit$strata  <- fit$strata[i]
+	    if (!is.null(fit$ntimes.strata)) {
+		fit$strata.all <- fit$strata.all[i]
+		fit$ntimes.strata <- fit$ntimes.strata[i]
+	        }
 	    fit$time    <- fit$time[keep]
 	    fit$n.risk  <- fit$n.risk[keep]
 	    fit$n.event <- fit$n.event[keep]
@@ -99,6 +109,9 @@ survfit <- function (formula, data, weights, subset, na.action, ...) {
 	    }
 	else {
 	    fit$surv <- fit$surv[keep]
+	    if (!is.null(fit$enter)) fit$enter <- fit$enter[keep]
+	    if (!is.null(fit$exit.censored))
+		    fit$exit.censored <- fit$exit.censored[keep]
 	    if (!is.null(fit$std.err)) fit$std.err <- fit$std.err[keep]
 	    if (!is.null(fit$upper)) fit$upper <- fit$upper[keep]
 	    if (!is.null(fit$lower)) fit$lower <- fit$lower[keep]
@@ -106,4 +119,5 @@ survfit <- function (formula, data, weights, subset, na.action, ...) {
 	}
     fit
     }
+
 

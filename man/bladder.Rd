@@ -1,7 +1,11 @@
 \name{bladder}
 \alias{bladder}
+\alias{bladder2}
 \title{Bladder Cancer Recurrences}
 \usage{data(bladder)}
+\description{Data on recurrences of bladder cancer, used by many people
+  to demonstrate methodology for recurrent event modelling.}
+  
 \format{
  bladder
     \tabular{ll}{
@@ -26,3 +30,4 @@
  }
 \source{Wei, Lin, Weisfeld, JASA 1989}
 \keyword{datasets}
+\keyword{survival}

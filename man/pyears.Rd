@@ -52,7 +52,7 @@ should the output table include the expected number of events, or the
 expected number of person-years of observation.  This is only valid with
 a rate table.
 }
-\item{"model,}{
+\item{model,}{
 If any of these is true, then the
 model frame, the model matrix, and/or the vector of response times will be
 returned as components of the final result.
@@ -128,7 +128,7 @@ Death rates change with age, of course, so the result is carved into
 \code{\link{ratetable}}, \code{\link{survexp}}, \code{\link{Surv}}
 \examples{\dontrun{
 library(date)
-library(ratetables)
+data(ratetables)
 # 
 # Simple case: a single male subject, born 6/6/36 and entered on study 6/6/55.
 #

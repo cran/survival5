@@ -1,4 +1,5 @@
 /* SCCS @(#)survreg3.c	1.1 02/06/99
+/*
 ** This is a version of survreg2.c, but for the "user written" distributions
 **   It get the derivative information for all observations at once.
 **
@@ -45,8 +46,6 @@
 #include <math.h>
 #include <float.h>
 #include "survS.h"
-#include "Rdefines.h"
-#include "Rinternals.h"
 #include "survproto.h"
 
 static int    nvar, nvar2, nstrat;
@@ -59,23 +58,25 @@ static double *u, *wt;
 static double scale;
 static double **funs, *z;
 
-static double dolik(int, double *, int);
+static double dolik(int, double *, int, void *, void *);
+
 
 static int debug;
-
-static SEXP fdensity, rho;
 void survreg3(int   *maxiter,   int   *nx,    int   *nvarx, 
 	     double *y,          int   *ny,    double *covar2, double *wtx,
 	     double *offset2,    double *beta,  int   *nstratx, 
 	     int   *stratax,    double *ux,    double *imatx, 
 	     double *loglik,     int   *flag,  double *eps,
-	     double *tol_chol,   int   *dist,  int   *ddebug,void* density, void *envir) {
+	     double *tol_chol,   int   *dist,  int   *ddebug,
+	      void *density, void *rho
+) {
     int i,j;	
     int n;
     double *newbeta,	   *savediag;
-    /* double temp;*/
+    double temp;
     int halving, iter;
     double newlk;
+
 
     n = *nx;
     nvar = *nvarx;
@@ -84,9 +85,7 @@ void survreg3(int   *maxiter,   int   *nx,    int   *nvarx,
     nstrat = *nstratx;
     strat  = stratax;
     wt = wtx;
-    fdensity=(SEXP) density;
-    rho=(SEXP) envir;
-
+    
     covar = dmatrix(covar2, n, nvar);
  
     /*
@@ -126,7 +125,7 @@ void survreg3(int   *maxiter,   int   *nx,    int   *nvarx,
     /*
     ** do the initial iteration step
     */
-    *loglik = dolik(n, beta, 0); 
+    *loglik = dolik(n, beta, 0,density,rho); 
     if (debug >0) {
 	fprintf(stderr, "nvar=%d, nvar2=%d, nstrat=%d\n", nvar, nvar2, nstrat);
         fprintf(stderr, "iter=0, loglik=%f\n", loglik[0]);
@@ -171,7 +170,7 @@ void survreg3(int   *maxiter,   int   *nx,    int   *nvarx,
     ** here is the main loop
     */
     halving =0 ;             /* >0 when in the midst of "step halving" */
-    newlk = dolik(n, newbeta, 0); 
+    newlk = dolik(n, newbeta, 0,density,rho); 
 
     /* put in a call to simplex if in trouble */
 
@@ -218,7 +217,7 @@ void survreg3(int   *maxiter,   int   *nx,    int   *nvarx,
 			    newbeta[nvar+i] = beta[nvar+i] - 1.1;  
 			}
 		    }
-		newlk = dolik(n, newbeta, 1);
+		newlk = dolik(n, newbeta, 1,density,rho);
 		}
 	    if (debug>0) {
 		fprintf(stderr,"   Step half -- %d steps, newlik=%f\n", 
@@ -255,7 +254,7 @@ void survreg3(int   *maxiter,   int   *nx,    int   *nvarx,
 		}
 	    }
 
-	newlk = dolik(n, newbeta, 0);
+	newlk = dolik(n, newbeta, 0,density, rho);
 	}   /* return for another iteration */
 
     *loglik = newlk;
@@ -277,7 +276,7 @@ void survreg3(int   *maxiter,   int   *nx,    int   *nvarx,
 ** This routine calculates the loglik, but more important
 **   it sets up the arrays for the main computation
 */
-static double dolik(int n, double *beta, int whichcase) {
+static double dolik(int n, double *beta, int whichcase, void *density, void*rho) {
     int person, i,j,k;
     int strata;
     double  eta,
@@ -288,7 +287,7 @@ static double dolik(int n, double *beta, int whichcase) {
     double  temp1, temp2;
     double  sz, zz, zu;
     double  sig2;
-    double g=0, dg=0, ddg=0, dsig=0, ddsig=0, dsg=0;/*-Wall*/
+    double g, dg, ddg, dsig, ddsig, dsg;
 
 
     for (i=0; i<nvar2; i++) {
@@ -325,7 +324,7 @@ static double dolik(int n, double *beta, int whichcase) {
 	    }
 	}
 
-    surv_callback(z, funs[0],n,fdensity,rho);  /* treat them both as a vector */
+    surv_callback(z, funs[0], n, density, rho);  /* treat them both as a vector */
 
     /*
     ** calculate the first and second derivative wrt eta,

@@ -1,4 +1,5 @@
 /*  SCCS @(#)pyears1.c	5.2 10/27/98
+/*
 **  Person-years calculations, in its most general
 **
 **  Input:
@@ -53,7 +54,6 @@ void pyears1(int   *sn,      int   *sny,      int   *sdoevent,
 	     double *sodata,  double *pyears,   double *pn, 
 	     double *pcount,  double *pexpect,  double *offtable)
     {
-
     register int i,j;
     int     n,
 	    ny,

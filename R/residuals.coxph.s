@@ -1,4 +1,4 @@
-#  SCCS @(#)residuals.coxph.s	5.1 08/30/98
+#  SCCS @(#)residuals.coxph.s	5.4 09/07/00
 residuals.coxph <-
   function(object, type=c("martingale", "deviance", "score", "schoenfeld",
 			  "dfbeta", "dfbetas", "scaledsch"),
@@ -6,8 +6,12 @@ residuals.coxph <-
     {
     type <- match.arg(type)
     otype <- type
-    if (type=='dfbeta' || type=='dfbetas') type <- 'score'
+    if (type=='dfbeta' || type=='dfbetas') {
+	type <- 'score'
+	if (missing(weighted)) weighted <- T  # different default
+	}
     if (type=='scaledsch') type<-'schoenfeld'
+
     n <- length(object$residuals)
     rr <- object$residual
     y <- object$y
@@ -15,6 +19,7 @@ residuals.coxph <-
     vv <- object$naive.var
     if (is.null(vv)) vv <- object$var
     weights <- object$weights
+    if (is.null(weights)) weights <- rep(1,n)
     strat <- object$strata
     method <- object$method
     if (method=='exact' && (type=='score' || type=='schoenfeld'))
@@ -54,8 +59,6 @@ residuals.coxph <-
 	    x <- x[ord,]
 	    y <- y[ord,]
 	    score <- exp(object$linear.predictor)[ord]
-	    if (is.null(weights)) {weights <- rep(1,n); weighted <- F}
-	    else                  weights <- weights[ord]
 	    }
 	}
 
@@ -71,17 +74,18 @@ residuals.coxph <-
 	temp <- .C("coxscho", n=as.integer(n),
 			    as.integer(nvar),
 			    as.double(y),
-			    resid= x,
-			    score * weights,
+			    resid=  as.double(x),
+			    as.double(score * weights[ord]),
 			    as.integer(newstrat),
 			    as.integer(method=='efron'),
-			    double(3*nvar),
-                    PACKAGE="survival5")
+			    double(3*nvar),PACKAGE="survival5")
 
 	deaths <- y[,3]==1
 
 	if (nvar==1) rr <- temp$resid[deaths]
-	else rr <- matrix(temp$resid[deaths,], ncol=nvar) #pick rows, and kill attr
+	else         rr <- matrix(temp$resid[deaths], ncol=nvar) #pick rows 
+	if (weighted) rr <- rr * weights[deaths]
+
 	if (length(strats)) attr(rr, "strata")  <- table((strat[ord])[deaths])
 	time <- c(y[deaths,2])  # 'c' kills all of the attributes
 	if (is.matrix(rr)) dimnames(rr)<- list(time, names(object$coef))
@@ -105,11 +109,10 @@ residuals.coxph <-
 				x=as.double(x),
 				as.integer(newstrat),
 				as.double(score),
-				as.double(weights),
+				as.double(weights[ord]),
 				as.integer(method=='efron'),
 				resid= double(n*nvar),
-				double(2*nvar),
-                    PACKAGE="survival5")$resid
+				double(2*nvar),PACKAGE="survival5")$resid
 	    }
 	else {
 	    resid<- .C("agscore",
@@ -119,11 +122,10 @@ residuals.coxph <-
 				as.double(x),
 				as.integer(newstrat),
 				as.double(score),
-				as.double(weights),
+				as.double(weights[ord]),
 				as.integer(method=='efron'),
 				resid=double(n*nvar),
-				double(nvar*6),
-                    PACKAGE="survival5")$resid
+				double(nvar*6),PACKAGE="survival5")$resid
 	    }
 	if (nvar >1) {
 	    rr <- matrix(0, n, nvar)
@@ -143,12 +145,9 @@ residuals.coxph <-
 	}
 
     #
-    # Multiply up by case weights, if requested
+    # Multiply up by case weights (which will be 1 for unweighted)
     #
-    if (!is.null(weights) & weighted) {
-	weights[ord] <- weights
-	rr <- rr * weights
-	}
+    if (weighted) rr <- rr * weights
 
     #Expand out the missing values in the result
     if (!is.null(object$na.action)) {

@@ -1,10 +1,13 @@
 \name{heart}
 \alias{jasa1}
+\alias{jasa}
 \alias{heart}
 \title{Stanford Heart Transplant data}
 \usage{data(heart)
 data(jasa)
 data(jasa1)}
+\description{Survival of patients on the waiting list for the Stanford
+  heart transplant program.}
 \format{
     jasa: original data
   \tabular{ll}{
@@ -32,6 +35,8 @@ data(jasa1)}
     transplant: \tab received transplant 1=yes\cr
     id:\tab patient id\cr
      }
-}
+   }
+   \seealso{\code{\link{stanford2}}}
 \source{Crowley and Hu, JASA}
 \keyword{datasets}
+\keyword{survival}

@@ -1,7 +1,8 @@
 \name{lines.survfit}
 \alias{lines.survfit}
+\alias{points.survfit}
 \title{
-Add Lines to a Survival Plot
+Add Lines or Points to a Survival Plot
 }
 \description{
 Often used to add the expected survival curve(s) to a Kaplan-Meier plot
@@ -10,6 +11,7 @@ generated with \code{plot.survfit}.
 \usage{
 lines.survfit(x, type="s", mark=3, col=1, lty=1, lwd=1, mark.time=T,
 	xscale=1,  firstx=0, firsty=1, xmax, fun, conf.int=F,  \dots)
+points.survfit(x,\dots)
 }
 \arguments{
 \item{x}{
@@ -86,7 +88,7 @@ tdata <- data.frame(age=pbc$age*365.24, sex=pbc$sex +1,
 		    year= rep(mdy.date(1,1,1976), nrow(pbc)))
 tdata<-tdata[1:312,] ## only the randomised people, with no missing data
 data(ratetables)
-efit <- survexp(~ sex, data=tdata, ratetable=survexp.us, times=(0:24)*182)
+efit <- survexp(~ sex+ratetable(sex=sex,age=age,year=year), data=tdata, ratetable=survexp.us, times=(0:24)*182)
 temp <- lines(efit, lty=2, xscale=365.24, lwd=2:1)
 text(temp, c("Male", "Female"), adj= -.1) #labels just past the ends
 }

@@ -1,4 +1,4 @@
-#SCCS 09/25/98 @(#)Surv.s	5.2
+#SCCS @(#)Surv.s	5.5 07/09/00
 # Package up surivival type data as a structure
 #
 Surv <- function(time, time2, event,
@@ -51,8 +51,8 @@ Surv <- function(time, time2, event,
 	if (is.logical(event)) status <- 1*event
 	    else  if (is.numeric(event)) {
 		who2 <- !is.na(event)
-		status <- event - min(event[who2])
-		if (all(status[who2]==0)) status <- status +1
+		if (max(event[who2])==2) status <- event - 1
+		else status <- event
 		if (any(status[who2] !=0  & status[who2]!=1))
 				stop("Invalid status value")
 		}
@@ -118,14 +118,14 @@ as.character.Surv <- function(xx) {
 	}
     }
 
-"[.Surv" <- function(x, i,j, drop=F) {
+"[.Surv" <- function(x, ..., drop=F) {
     # If only 1 subscript is given, the result will still be a Surv object
     #  If the second is given extract the relevant columns as a matrix
-    if (missing(j)) {
+    if (missing(..2)) {
 	temp <- class(x)
 	type <- attr(x, "type")
 	class(x) <- NULL
-	x <- x[i,, drop=F]
+	x <- x[..., drop=F]
 	class(x) <- temp
 	attr(x, "type") <- type
 	x
@@ -137,7 +137,7 @@ as.character.Surv <- function(xx) {
     }
 
 is.na.Surv <- function(x) {
-    as.vector( (1* is.na(unclass(x)))%*% rep(1, ncol(x)) !=0)
+    as.vector( (1* is.na(unclass(x)))%*% rep(1, ncol(x)) >0)
     }
 
 Math.Surv <- function(...)  stop("Invalid operation on a survival time")

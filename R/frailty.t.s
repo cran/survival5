@@ -1,4 +1,4 @@
-# SCCS @(#)frailty.t.s	1.3 01/14/99
+# SCCS @(#)frailty.t.s	1.4 07/10/00
 # 
 # Defining function for t-distribution frailty fits
 #
@@ -12,8 +12,7 @@ frailty.t <- function(x, sparse=(nclass>5), theta, df, eps= 1e-5,  tdf=5,
     else{
 	x <- as.factor(x)
 	class(x) <- c("coxph.penalty",class(x))
-	###attr(x,'contrasts') <- function(n,...) contr.treatment(n,F)
-        attr(x,'contrasts')<-contr.treatment(nclass,contrasts=F)
+	attr(x,'contrasts') <- contr.treatment(nclass,contrasts=F)
         }
 
     if (tdf <=2) stop("Cannot have df <3 for the t-frailty")
@@ -107,7 +106,7 @@ frailty.t <- function(x, sparse=(nclass>5), theta, df, eps= 1e-5,  tdf=5,
     # If not sparse, give shorter names to the coefficients, so that any
     #   printout of them is readable.
     if (!sparse) {
-	vname <- paste("gamma", levels(x), sep=':')
+	vname <- paste("t", levels(x), sep=':')
 	temp <- c(temp, list(varname=vname))
 	}
     attributes(x) <- c(attributes(x), temp)

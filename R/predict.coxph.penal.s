@@ -1,16 +1,16 @@
 # SCCS @(#)predict.coxph.penal.s	5.3 11/25/98
 predict.coxph.penal <- function(object,  newdata, 
 				type=c("lp", "risk", "expected", "terms"),
-				se.fit=F, terms=names(object$assign),
-				collapse, safe=F, ...) {
-
+				se.fit=FALSE, terms=names(object$assign), 
+				collapse, safe=FALSE, ...) {
+ 
     type <- match.arg(type)
     n <- object$n
     Terms <- object$terms
     pterms <- object$pterms
     # If there are no sparse terms
     if (!any(pterms==2) || type=='expected' || 
-	(missing(newdata) && se.fit==F && type!='terms')) NextMethod('predict')
+	(missing(newdata) && se.fit==F && type!='terms')) NextMethod('predict',object,...)
     else {
 	# treat the sparse term as an offset term
 	#  It gets picked up in the linear predictor, so all I need to
@@ -28,7 +28,7 @@ predict.coxph.penal <- function(object,  newdata,
 	    # I need the X matrix
 	    x <- object$x
 	    if (is.null(x)) {
-		temp <- coxph.getdata(object, y=T, x=T, strata=T)
+		temp <- coxph.getdata(object, y=TRUE, x=TRUE, strata=TRUE)
 		if (is.null(object$y)) object$y <- temp$y
 		if (is.null(object$strata)) object$strata <- temp$strata
 		x <- temp$x
@@ -51,12 +51,11 @@ predict.coxph.penal <- function(object,  newdata,
 	else {
 	    temp <- attr(object$terms, 'term.labels')
 	    object$terms <- object$terms[-match(sparsename, temp)]
-	    ###pred <- NextMethod('predict')
-            if (missing(collapse)) {
-              pred<-predict.coxph(object,newdata,type,se.fit,terms[-match(sparsename,terms)],safe=safe,...)
-            }else{
-              pred<-predict.coxph(object,newdata,type,se.fit,terms[-match(sparsename,terms)],collapse,safe,...)
-            }
+            temp<-match(sparsename,terms)
+            oldTerms<-terms
+            if (!is.na(temp)) terms<-terms[-temp]
+	    pred <- NextMethod('predict',object,terms=terms,...)
+            terms<-oldTerms
 	    if (se.fit) {
 		se <- pred$se.fit
 		pred <- pred$fit

@@ -1,6 +1,10 @@
 \name{Surv}
 \alias{Surv}
 \alias{is.Surv}
+\alias{print.Surv}
+\alias{Math.Surv}
+\alias{Sumary.Surv}
+\alias{Ops.Surv}
 \title{
 Create a Survival Object
 }
@@ -91,7 +95,6 @@ guess wrong.  Use 0/1 coding in this case.
 }
 \seealso{
 \code{\link{coxph}}, \code{\link{survfit}}, \code{\link{survreg}}.
-\examples{
 \examples{
 data(aml)
 Surv(aml$time, aml$status)

@@ -1,4 +1,4 @@
-#  SCCS @(#)coxpenal.df.s	1.7 05/27/98
+#  SCCS   @(#)coxpenal.df.s	1.2 02/21/99
 #
 # degrees of freedom computation, based on Bob Gray's paper
 #

@@ -1,11 +1,11 @@
 #
-# SCCS @(#)survreg.s	5.3 02/06/99
+# SCCS @(#)survreg.s	5.8 07/10/00
 #  The newest version of survreg, that accepts penalties and strata
 #
 
-survreg <- function(formula=formula(data), data=sys.frame(sys.parent()),
-	subset, na.action, dist='weibull', 
-	init=NULL,  scale=0, control, parms=NULL, 
+survreg <- function(formula=formula(data), data=parent.frame(),
+	weights, subset, na.action, dist='weibull', 
+	init=NULL,  scale=0, control=survreg.control(), parms=NULL, 
 	model=F, x=F, y=T, ...) {
 
     call <- match.call()
@@ -17,8 +17,8 @@ survreg <- function(formula=formula(data), data=sys.frame(sys.parent()),
     Terms <- if(missing(data)) terms(formula, special)
              else              terms(formula, special, data=data)
     m$formula <- Terms
-    m <- eval(m, sys.frame(sys.parent()))
-    ### I don't understand this (TSL)
+    m <- eval(m, parent.frame())
+    ### I commented this out last time -- don't know why
     ###Terms <- attr(m, 'terms')
 
     weights <- model.extract(m, 'weights')
@@ -50,9 +50,9 @@ survreg <- function(formula=formula(data), data=sys.frame(sys.parent()),
 	}
 
     if (length(dropx)) newTerms<-Terms[-dropx]
-    else newTerms<-Terms
-     
-    X <- model.matrix(newTerms, m)
+    else               newTerms<-Terms
+    X<-model.matrix(newTerms,m)
+    
     n <- nrow(X)
     nvar <- ncol(X)
 
@@ -94,11 +94,16 @@ survreg <- function(formula=formula(data), data=sys.frame(sys.parent()),
 	else if (type=='left')
 	     Y <- cbind(tranfun(Y[,1]), 2-Y[,2])
 	else     Y <- cbind(tranfun(Y[,1]), Y[,2])
+	if (!all(is.finite(Y))) 
+	    stop("Invalid survival times for this distribution")
 	}
     else {
 	if (type=='left') Y[,2] <- 2- Y[,2]
-	else if (type=='interval' && all(Y[,3]<3)) Y < Y[,c(1,3)]
+	else if (type=='interval' && all(Y[,3]<3)) Y <- Y[,c(1,3)]
 	}
+
+    if (is.null(dlist$itrans)) itrans <- function(x) x
+    else itrans <- dlist$itrans
 
     if (!is.null(dlist$scale)) {
 	if (!missing(scale)) warning(paste(dlist$name, 
@@ -107,8 +112,7 @@ survreg <- function(formula=formula(data), data=sys.frame(sys.parent()),
 	}
     if (!is.null(dlist$dist)) dlist <- survreg.distributions[[dlist$dist]]
 
-    if (missing(control)) controlvals <- survreg.control(...)
-    else  controlvals <- survreg.control(c(unlist(control), ...))
+    if (missing(control)) control <- survreg.control(...)
 
     if (scale < 0) stop("Invalid scale value")
     if (scale >0 && nstrata >1) 
@@ -128,18 +132,18 @@ survreg <- function(formula=formula(data), data=sys.frame(sys.parent()),
 	temp <- match((names(pterms))[pterms], attr(Terms, 'term.labels'))
 	ord <- attr(Terms, 'order')[temp]
 	if (any(ord>1)) stop ('Penalty terms cannot be in an interaction')
+	##pcols <- (attr(X, 'assign')[-1])[pterms]
         assign<-attrassign(X,newTerms)
-        ##	pcols <- (attr(X, 'assign')[-1])[pterms]  
         pcols<-assign[-1][pterms]
-        
+  
         fit <- survpenal.fit(X, Y, weights, offset, init=init,
-				controlvals = controlvals,
+				controlvals = control,
 			        dist= dlist, scale=scale,
 			        strata=strata, nstrat=nstrata,
 				pcols, pattr,assign, parms=parms)
 	}
     else fit <- survreg.fit(X, Y, weights, offset, 
-			    init=init, controlvals=controlvals,
+			    init=init, controlvals=control,
 			    dist= dlist, scale=scale, nstrat=nstrata, 
 			    strata, parms=parms)
 
@@ -162,12 +166,14 @@ survreg <- function(formula=formula(data), data=sys.frame(sys.parent()),
 
     na.action <- attr(m, "na.action")
     if (length(na.action)) fit$na.action <- na.action
+    fit$df.residual <- n - sum(fit$df)
+#   fit$fitted.values <- itrans(fit$linear.predictors)
     fit$terms <- Terms
     fit$formula <- as.vector(attr(Terms, "formula"))
     fit$means <- apply(X,2, mean)
     fit$call <- call
     fit$dist <- dist
-    fit$df.resid<-n-sum(fit$df)
+    fit$df.resid<n-sum(fit$df) ##used for anova.survreg
     if (model) fit$model <- m
     if (x)     fit$x <- X
     if (y)     fit$y <- Y

@@ -1,6 +1,7 @@
 \name{survreg}
 \alias{survreg}
 \alias{survReg}
+\alias{censorReg}
 \title{
 Regression for a Parametric Survival Model
 }
@@ -77,7 +78,9 @@ is not positive definite.
 }
 \seealso{
 \code{\link{survreg.object}}, \code{\link{survreg.distributions}},
-\code{\link{pspline}}, \code{\link{frailty}}, \code{\link{ridge}}}
+\code{\link{pspline}}, \code{\link{frailty}}, \code{\link{ridge}},
+\code{\link{survreg.old}}
+}
 \examples{
 data(ovarian)
 ## These are all the same
