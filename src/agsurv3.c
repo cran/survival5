@@ -1,4 +1,4 @@
-/*  SCCS @(#)agsurv3.c	5.4 02/09/00
+/*  SCCS @(#)agsurv3.c	5.4 02/09/00*/
 /*
 ** Create the cohort survival curve(s) for a set of subjects.
 **
@@ -82,24 +82,24 @@ void agsurv3(int   *sn,    int   *snvar,    int   *sncurve,
     int npt,
 	nvar2,
 	method;
-    int kk, psave;
+    int kk=0, psave;
     int itime;
     int person;
     int deaths, nrisk;
     int need;
-    double *a, *a2;
-    double weight,
+    double *a=0, *a2=0;
+    double weight=0,
 	   e_denom,
 	   denom;
     double inc,
 	   sumt,
-	   km;
+	   km=0;
     double temp,
 	   downwt,
 	   d2;
     double haz,
 	   varhaz;
-    double **oldx;
+    double **oldx=0;
 
 
     n = *sn;  nvar = *snvar;

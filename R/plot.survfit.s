@@ -5,7 +5,8 @@ plot.survfit<- function(x, conf.int,  mark.time=T,
 			firstx=0, firsty=1,
 			xmax, ymin=0,
 			fun,
-			xlab="", ylab="", xaxs='S', ...) {
+			xlab="", ylab="", xaxs='S', legend.text=NULL,
+                        legend.pos=0,legend.bty="n",...) {
 
     mintime <- min(x$time)
     firstx <- min(firstx,mintime)
@@ -286,6 +287,25 @@ plot.survfit<- function(x, conf.int,  mark.time=T,
 	        }
 	    }
         }
+
+    ##legend
+    if (!is.null(legend.text)){
+        xc <- par("cex") * xinch(par("cin")[1], warn.log = FALSE)
+        if (is.list(legend.pos)) legend.pos<-unlist(legend.pos)
+        if (length(legend.pos)==2){
+            llx<-legend.pos[1]
+            lly<-legend.pos[2]
+        }
+        else if (legend.pos==1){
+            lly<-yscale*0.95
+            llx<-max(tempx)-max(strwidth(legend.text))-6*xc
+        }
+        else if (legend.pos==0){
+            llx<-0.95*min(tempx)+0.05*max(tempx)
+            lly<-ymin+(2+length(legend.text))*max(strheight(legend.text))
+        }
+        legend(llx,lly,legend=legend.text,lty=lty,bty=legend.bty,...)
+    }
     invisible(list(x=xend, y=yend))
     }
 

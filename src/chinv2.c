@@ -1,5 +1,4 @@
 /*  SCCS @(#)chinv2.c	5.3 07/15/99
-/*
 ** matrix inversion, given the FDF' cholesky decomposition
 **
 ** input  **matrix, which contains the chol decomp of an n by n

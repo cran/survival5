@@ -1,5 +1,4 @@
 /* SCCS @(#)survfit3.c	1.3 07/09/00
-/*
 ** Fit the survival curve
 **  Input
 **    sn = number of subjects
@@ -37,7 +36,7 @@ void survfit3(int   *sn,              double *y,               double *wt,
 	      double *exit_censored)
 
 {
-  int i,j, grp, k;
+  int i,j=0, grp, k;/*-Wall*/
   double hazard, varhaz;
   double km, c;
   double enter_count, exit_censored_count, risk_count, 

@@ -1,5 +1,4 @@
 /* SCCS @(#)survreg2.c	1.5 02/06/99
-/*
 ** Fit one of several censored data distributions
 **
 ** Input
@@ -87,7 +86,7 @@ void survreg2(int   *maxiter,   int   *nx,    int   *nvarx,
     int n;
     double *newbeta,
 	   *savediag;
-    double temp;
+    /*double temp; -Wall unused*/
     int halving, iter;
     double newlk;
 
@@ -297,7 +296,7 @@ static double dolik(int n, double *beta, int whichcase) {
     double  sz;
     double  sig2;
     static double  funs[4], ufun[4];
-    double g, dg, ddg, dsig, ddsig, dsg;
+    double g=0, dg=0, ddg=0, dsig=0, ddsig=0, dsg=0; /*-Wall*/
 
 
     for (i=0; i<nvar2; i++) {

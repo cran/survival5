@@ -1,18 +1,19 @@
 
 R : Copyright 2000, The R Development Core Team
-Version 1.2.0 Under development (unstable) (2000-11-11)
+Version 1.2.0 Under development (unstable) (2000-12-12)
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
-Type	"?license" or "?licence" for distribution details.
+Type `license()' or `licence()' for distribution details.
 
 R is a collaborative project with many contributors.
-Type	"?contributors" for a list.
+Type `contributors()' for more information.
 
-Type	"demo()" for some demos, "help()" for on-line help, or
-    	"help.start()" for a HTML browser interface to help.
-Type	"q()" to quit R.
+Type `demo()' for some demos, `help()' for on-line help, or
+`help.start()' for a HTML browser interface to help.
+Type `q()' to quit R.
 
+Loading required package: ctest 
 > #
 > # Set up for the test
 > #
@@ -352,7 +353,7 @@ Likelihood ratio test=0.01  on 1 df, p=0.912  n= 10
 Call: survfit.coxph(object = fit)
 
        n   events     mean se(mean)   median  0.95LCL  0.95UCL 
-   10.00     7.00     4.77     2.16     3.00     2.00      Inf 
+    2.00     7.00     4.77     2.16     3.00     2.00      Inf 
 > summary(sfit)
 Call: survfit.coxph(object = fit)
 
@@ -375,9 +376,9 @@ Call: survfit.coxph(object = fit)
 > sfit
 Call: survfit.coxph(object = fitx, newdata = c(fitx$means[1], 0))
 
-      n events mean se(mean) median 0.95LCL 0.95UCL
-ss=0 10      7 4.77     2.16      3       2     Inf
-ss=1 10      7 4.77     2.16      3       2     Inf
+     n events mean se(mean) median 0.95LCL 0.95UCL
+ss=0 2      7 4.77     2.16      3       2     Inf
+ss=1 2      7 4.77     2.16      3       2     Inf
 > summary(sfit)
 Call: survfit.coxph(object = fitx, newdata = c(fitx$means[1], 0))
 

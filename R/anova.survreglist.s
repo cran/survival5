@@ -53,8 +53,12 @@ anova.survreglist <- function(object, ..., test = c("Chisq", "none")) {
     if(test != "none") {
 	n <- length(object[[1]]$residuals)
 	o <- order(dfres)
-	stat.anova(aod, test, deviance.lm(object[[o[1]]])/dfres[o[1]], 
-		   dfres[o[1]], n)
+        ## R uses scale argument even for "Chisq"
+        if (test=="Chisq")
+            scale<-1
+        else
+            scale<-deviance.lm(object[[o[1]]])/dfres[o[1]]
+	stat.anova(aod, test, scale, dfres[o[1]], n)
 	}
     else aod
     }

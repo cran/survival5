@@ -1,5 +1,4 @@
 /*  SCCS @(#)agfit3.c	1.3 06/12/00
-/*
 ** Anderson-Gill formulation of the Cox Model, using smart subsets
 **
 **  the input parameters are

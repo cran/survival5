@@ -1,5 +1,4 @@
 /*  SCCS @(#)pyears3.c	5.2 10/27/98
-/*
 **  Person-years calculations, leading to expected survival for a cohort.
 **    The output table depends only on factors, not on continuous.
 **

@@ -1,5 +1,4 @@
 /*  SCCS @(#)agfit2.c	5.2 10/27/98
-/*
 ** Anderson-Gill formulation of the cox Model
 **
 **  the input parameters are

@@ -51,8 +51,6 @@ The other predefined distributions are defined in terms of these. The
 distributions with fixed \code{scale} of 1 and 0.5 respectively, and
 \code{loggaussian} is a synonym for \code{lognormal}.
 
-}
-\seealso{\code{\link{survreg}}, \code{\link{pnorm}},\
-  code{\link{plogis}}, \code{\link{pt}},
-  the documentation in \code{doc/survival.ps.gz}}
+} \seealso{\code{\link{survreg}},
+\code{\link{pnorm}},\code{\link{plogis}}, \code{\link{pt}}}}
 \keyword{survival}

@@ -18,7 +18,7 @@ survfit(formula, data=sys.parent(), weights, subset, na.action,
         type=c("kaplan-meier","fleming-harrington", "fh2"),
         error=c("greenwood","tsiatis"),
         conf.type=c("log","log-log","plain","none"),
-        conf.lower=c("usual", "peto", "modified")
+        conf.lower=c("usual", "peto", "modified"))
 }
 \arguments{
 \item{formula}{

@@ -1,4 +1,4 @@
-/*  SCCS @(#)agsurv1.c	5.3 11/04/98
+/*  SCCS @(#)agsurv1.c	5.3 11/04/98*/
 /*
 ** Fit the survival curve, the special case of an Anderson-Gill style data
 **   This program differs from survfit in several key ways:
@@ -80,7 +80,7 @@ void agsurv1(int   *sn,     int   *snvar,  double *y,      double *score,
 	   downwt,
 	   d2;
     double time,
-	   weight,
+	weight=0,/*-Wall*/
 	   denom;
     double cumtime;
 

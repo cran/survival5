@@ -46,7 +46,7 @@ void survindex2(int   *n,          double *stime,      int   *strata,
 
 {
   int i,j,k;
-  int nn, cc, current_strata, sum_event, last, last_time, sum_times, 
+  int nn, cc, current_strata, sum_event, /*last, last_time, (-Wall unused)*/ sum_times, 
       strata_count;
 
   double start_time, starting_time;

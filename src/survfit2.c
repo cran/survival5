@@ -1,5 +1,4 @@
 /* SCCS @(#)survfit2.c	5.5 07/09/00
-/*
 ** Fit the survival curve
 **  Input
 **    sn = number of subjects
@@ -30,7 +29,7 @@ void survfit2(int   *sn,      double *y,       double *wt,
 {
     int i,j;
     double hazard, varhaz;
-    double sum, km;
+    double sum=0, km;/*-Wall*/
     double *time, *status;
     double temp;
     int n;

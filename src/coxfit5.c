@@ -1,4 +1,4 @@
-/* SCCS @(#)coxfit5.c	1.1 06/12/00
+/* SCCS @(#)coxfit5.c	1.1 06/12/00*/
 /* A reentrant version of the Coxfit program, for random effects modeling
 **   with reasonable efficiency (I hope).  The important arrays are saved
 **   from call to call so as to speed up the process.  The x-matrix itself
@@ -294,13 +294,13 @@ void coxfit5_b(int *maxiter, int *nusedx, int *nvarx,
     int     iter;
     int     nused, nvar;
     int    nf, nvar2;
-    int    fgrp;
+    int    fgrp=0;/*-Wall*/
     int    halving;
 
-    double  denom, zbeta, risk;
+    double  denom=0, zbeta, risk;/*-Wall*/
     double  temp, temp2;
-    double  newlk;
-    double  d2, efron_wt;
+    double  newlk=0;/*-Wall*/
+    double  d2, efron_wt=0;/*-Wall*/
     double  method;
     double  **imat, **jmat;
     double  ndead;
@@ -576,7 +576,7 @@ void coxfit5_c (int *nusedx, int *nvar, int *strata, int *methodx,
            method,
 	   ip, istrat,
            i, j;
-    int    scount;   /* number so far in this strata */
+    /* int    scount; -Wall "not used"? */  /* number so far in this strata */
 
     nused = *nusedx;
     method= *methodx;

@@ -1,4 +1,4 @@
-/*  SCCS @(#)agscore.c	5.2 10/27/98
+/*  SCCS @(#)agscore.c	5.2 10/27/98*/
 /*
 ** Do the score residuals
 **
@@ -161,7 +161,7 @@ void agscore(int   *nx,       int   *nvarx,      double *y,
 			}
 		    if (strata[k]==1) break;
 		    }
-		for (person; stop[person]==time; person++)
+		for (; stop[person]==time; person++)
 		    if (strata[person]==1) break;
 		}
 	    }

@@ -29,7 +29,9 @@ anova.survreg <- function(object, ..., test = c("Chisq", "none")) {
 	    df.res[iterm] <- sum(fit$df)
 	    }
 	dev <- c(NA,  - diff(loglik))
-	df <- c(NA,  - diff(df.res))
+        ## df.res goes up as you add terms, not down
+	##df <- c(NA,  - diff(df.res))
+        df <- c(NA,  diff(df.res)) 
 	}
     else {
 	loglik[1] <- -2 * object$loglik[2]
@@ -49,5 +51,5 @@ anova.survreg <- function(object, ..., test = c("Chisq", "none")) {
     class(aod) <- c("anova", "data.frame")
     if(test == "none")
 	    return(aod)
-    else stat.anova(aod, test, n = nrow(y))
+    else stat.anova(aod, test, scale=1,n = nrow(y))
     }

@@ -7,7 +7,8 @@ Plot Method for `survfit'
 plot.survfit(survfit, conf.int=<<see below>>, mark.time=T,
  mark=3, col=1, lty=1, lwd=1, cex=1, log=F, xscale=1, yscale=1, 
  firstx=0, firsty=1, xmax, ymin=0, fun,
- xlab="", ylab="", xaxs="S", \dots)
+ xlab="", ylab="", xaxs="S",
+legend.text=NULL,legend.bty="n",legend.pos=0,\dots)
 }
 \arguments{
 \item{survfit}{
@@ -101,7 +102,12 @@ Survival curves are usually displayed with the curve touching the y-axis,
 but not touching the bounding box of the plot on the other 3 sides.
 Type \code{"S"} accomplishes this by manipulating the plot range and then using
 the \code{"i"} style internally.
-}}
+}\item{legend.pos}{position for the legend: a vector of length 2, or
+  0 to put the legend in the lower left, 1 to put it in the upper
+  right. These may not work well with transformed curves.}
+\item{legend.bty}{Box type, see \code{\link{legend}}}
+\item{legend.text}{Text for legend, see \code{\link{legend}}}
+}
 \value{
 a list with components \code{x} and \code{y}, containing the coordinates of the last point
 on each of the curves (but not the confidence limits).  
@@ -121,7 +127,9 @@ from a \code{coxph} fit, provide a vector of times as the \code{mark.time} argum
 in the call to \code{plot.survfit} or \code{lines.survfit}. 
 }
 \seealso{
-\code{\link{par}}, \code{\link{survfit}}, \code{\link{lines.survfit}}.
+  \code{\link{par}}, \code{\link{survfit}}, \code{\link{lines.survfit}}
+\code{\link{legend}}
+}.
 \examples{
 data(aml)
 leukemia.surv <- survfit(Surv(time, status) ~ x, data = aml)
@@ -133,6 +141,14 @@ title("Kaplan-Meier Curves\nfor AML Maintenance Study")
 lsurv2 <- survfit(Surv(time, status) ~ x, aml, type='fleming')
 plot(lsurv2, lty=2:3, fun="cumhaz",
 	xlab="Months", ylab="Cumulative Hazard")
+
+plot(leukemia.surv,lty=2:3,legend.pos=0,legend.text=c("Maintenance",
+"No Maintenance"))
+if (interactive()){
+plot(leukemia.surv,lty=2:3,legend.pos=locator(1),legend.text=c("Maintenance",
+"No Maintenance"))
+}
+}
 }
 \keyword{survival}
 \keyword{hplot}

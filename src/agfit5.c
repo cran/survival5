@@ -79,14 +79,14 @@
 #include "survproto.h"
 
 static double **covar, **cmat, **cmat2;
-static int *end;
+/* static int *end; -Wall*/
 static double *a, *oldbeta, *a2;
 static double *offset, *weights;
 static int    *event, *frail;
 static double *score, *start, *stop;
 static int    *sort1, *sort2;
 static double *tmean;
-static int    ptype, pdiag, nstrat;
+static int    ptype, pdiag/*, nstrat*/;
 static double *ipen, *upen, logpen;
 static int   *zflag;
 
@@ -106,7 +106,7 @@ void agfit5_a(int *nusedx, int *nvarx, double *yy,
     int i,j,k, person;
     int     nused, nvar;
     int    nf, nvar2;
-    int  deaths, itemp, endp;
+    int  deaths, itemp/*, endp*/;
     int  istrat, indx2, p, ksave;  
 
     double  denom, zbeta, risk;
@@ -314,12 +314,12 @@ void agfit5_b(int *maxiter, int *nusedx, int *nvarx,
     int    nf, nvar2;
     int    fgrp;
     int    halving;
-    int    itemp, endp, deaths;
+    int    itemp,/* endp,*/ deaths;
     int  istrat, indx2, p, ksave;  
 
     double  denom, zbeta, risk;
     double  temp, temp2;
-    double  newlk;
+    double  newlk=0; /*-Wall*/
     double  d2, efron_wt;
     double  meanwt, time;
     double  method;

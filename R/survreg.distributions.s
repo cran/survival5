@@ -2,7 +2,7 @@
 #
 # Create the survreg.distributions object
 #
-survreg.distributions <- list(
+survreg.distributions <- local({list(
 'extreme' = list(
     name = "Extreme value",
     variance = function(parm) pi^2/6,
@@ -156,8 +156,7 @@ t = list(
 )
 
 
-
-
+})
 
 
 

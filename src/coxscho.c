@@ -1,5 +1,4 @@
 /*  SCCS @(#)coxscho.c	5.2 10/27/98
-/*
 ** Return the Schoenfeld residuals.
 **
 **  the input parameters are
