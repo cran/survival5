@@ -9,7 +9,7 @@ standard error, and the median survival with confidence limits for the
 median.
 }
 \usage{
-print.survfit(x, scale=1)
+print.survfit(x, scale=1,print.n=getOption("survfit.print.n"))
 }
 \arguments{
 \item{x}{
@@ -24,7 +24,7 @@ if the input data to survfit were in days,
 \code{x}, with the invisible flag set.
 }
 \section{Side Effects}{
-the number of observations, the number of events, the mean survival and its
+the number of observations (see below), the number of events, the mean survival and its
 standard error, and the median survival with its confidence interval are
 printed.  If there are multiple curves, there is one line of output for each.
 }
@@ -42,6 +42,19 @@ The intersection of the line with the lower CI band defines the lower limit
 for the median's interval, and similarly for the upper band.  If any of the
 intersections is not a point, then we use the smallest point of intersection,
 e.g., if the survival curve were exactly equal to 0.5 over an interval.
+
+The "number of observations" is not well-defined for counting process
+data. Previous versions of this code used the number at risk at the
+first time point. This is misleading if many individuals enter late or
+change strata. The original S code for the current version uses the
+number of records, which is misleading with time-dependent
+covariates. Four possibilities are provided, controlled by
+\code{print.n} or by \code{options(survfit.print.n)}: \code{"none"}
+prints \code{NA}, \code{"records"} prints the number of records,
+\code{"start"} prints the number at the first time point and
+\code{"max"} prints the maximum number at risk. The initial default is
+\code{"start"}.
+
 }
 \references{
 Miller, Rupert G., Jr. (1981) 
@@ -51,5 +64,16 @@ Wiley, New York, p 71.
 \seealso{
 \code{\link{summary.survfit}}
 }
+\examples{
+##effect of print.n
+data(heart)
+a<-coxph(Surv(start,stop,event)~age+strata(transplant),data=heart)
+b<-survfit(a)
+print(b,print.n="none")
+print(b,print.n="records")
+print(b,print.n="start")
+print(b,print.n="max")
+}
+
 \keyword{survival}
 % Converted by Sd2Rd version 0.3-2.

@@ -212,7 +212,7 @@ survfit.coxph <-
 		     n.risk=surv$y[ntime,2],
 		     n.event=surv$y[ntime,3],
 		     surv=tsurv,
-		     strata= tstrat,
+		     strata= tstrat, ntimes.strata=tstrat,
 			strata.all=strata.all,
 			type=type)
 	    }

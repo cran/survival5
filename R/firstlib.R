@@ -1,6 +1,12 @@
 .First.lib <- function(lib, pkg) {
           library.dynam("survival5", pkg, lib)
         }
+
+## "start" is compatible with previous R and with BDR
+if (is.null(getOption("survfit.print.n")))
+    options(survfit.print.n="start")
+
+
 "[.terms" <-
 function (termobj, i) 
 {

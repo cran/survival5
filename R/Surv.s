@@ -118,14 +118,34 @@ as.character.Surv <- function(xx) {
 	}
     }
 
-"[.Surv" <- function(x, ..., drop=F) {
+## the ... handling here works in R1.2 but not R1.1.1
+##
+##"[.Surv" <- function(x, ..., drop=F) {
+##    # If only 1 subscript is given, the result will still be a Surv object
+##    #  If the second is given extract the relevant columns as a matrix
+##    if (missing(..2)) {
+##	temp <- class(x)
+##	type <- attr(x, "type")
+##	class(x) <- NULL
+##	x <- x[..., drop=F]
+##	class(x) <- temp
+##	attr(x, "type") <- type
+##	x
+##	}
+##    else {
+##	class(x) <- NULL
+##	NextMethod("[")
+##	}
+##    }
+
+"[.Surv" <- function(x, i,j, drop=F) {
     # If only 1 subscript is given, the result will still be a Surv object
     #  If the second is given extract the relevant columns as a matrix
-    if (missing(..2)) {
+    if (missing(j)) {
 	temp <- class(x)
 	type <- attr(x, "type")
 	class(x) <- NULL
-	x <- x[..., drop=F]
+	x <- x[i, , drop=F]
 	class(x) <- temp
 	attr(x, "type") <- type
 	x

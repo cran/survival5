@@ -1,6 +1,10 @@
 #SCCS @(#)print.survfit.s	4.19 07/09/00
 print.survfit <- function(x, scale=1, 
-			  digits = max(options()$digits - 4, 3), ...) {
+			  digits = max(options()$digits - 4, 3),
+                          print.n=getOption("survfit.print.n"),...) {
+
+    ##<TSL> different definitions of N....
+    print.n<-match.arg(print.n,c("none","start","records","max"))
 
     if (!is.null(cl<- x$call)) {
 	cat("Call: ")
@@ -77,7 +81,12 @@ print.survfit <- function(x, scale=1,
     #Four cases: strata Y/N  by  ncol(surv)>1 Y/N
     #  Repeat the code, with minor variations, for each one
     if (is.null(x$strata)) {
-	x1 <- pfun(x$n, stime, surv, x$n.risk, x$n.event, x$lower, x$upper)
+        nsubjects<-switch(print.n,none=NA,
+                          start=x$n.risk[1],
+                          records=x$n,
+                          max=max(x$n.risk))
+        ##x1 <- pfun(x$n, stime, surv, x$n.risk, x$n.event, x$lower, x$upper)
+        x1 <- pfun(nsubjects, stime, surv, x$n.risk, x$n.event, x$lower, x$upper)
 	if (is.matrix(x1)) {
 	    if (is.null(x$lower))
 		    dimnames(x1) <- list(NULL, plab)
@@ -98,18 +107,26 @@ print.survfit <- function(x, scale=1,
 		stemp <- rep(1:nstrat,x$strata)
 	else stemp <- rep(1:nstrat,x$ntimes.strata)
 	x1 <- NULL
-	if (is.null(x$strata.all)) strata.var <- x$strata
-	else strata.var <- x$strata.all
-	for (i in unique(stemp)) {
+	if (is.null(x$strata.all))
+            strata.var <- x$strata
+	else
+            strata.var <- x$strata.all
+
+ 	for (i in unique(stemp)) {
 	    who <- (stemp==i)
+            ##different defn's of n
+            nsubjects<-switch(print.n,none=NA,
+                              start=x$n.risk[who][1],
+                              records=strata.var[i],
+                              max=max(x$n.risk[who]))
 	    if (is.matrix(surv)) {
-		temp <- pfun(strata.var[i], stime[who], surv[who,,drop=F],
+		temp <- pfun(nsubjects, stime[who], surv[who,,drop=F],
 			  x$n.risk[who], x$n.event[who],
 			  x$lower[who,,drop=F], x$upper[who,,drop=F])
 		x1 <- rbind(x1, temp)
 	        }
 	    else  {
-		temp <- pfun(strata.var[i], stime[who], surv[who], 
+		temp <- pfun(nsubjects, stime[who], surv[who], 
 			     x$n.risk[who], x$n.event[who], x$lower[who], 
 			     x$upper[who])
 		x1 <- rbind(x1, temp)

@@ -151,9 +151,6 @@ based on the work of Dorey and Korn (1987) the modified estimate will give
 a more reliable confidence band for the tails of the curve.
 }
 \references{
-Terry Therneau, author of local function.
-
-
 Dorey, F. J. and Korn, E. L. (1987).  Effective sample sizes for confidence
 intervals for survival probabilities.  \emph{Statistics in Medicine} 6, 679-87.
 

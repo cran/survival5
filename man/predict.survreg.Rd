@@ -11,7 +11,7 @@ Predicted values for a \code{survreg} object
 predict.survreg(object, newdata, 
 type=c("response", "link", "linear", "response", "terms", "quantile", 
 	"uquantile"), 
-se.fit=F, terms=labels.lm(object), p=c(0.1, 0.9), ripley=F)
+se.fit=F, terms=labels.lm(object), p=c(0.1, 0.9))
 }
 \arguments{
 \item{object}{
@@ -40,11 +40,7 @@ one column for every term (excluding the intercept) in the model.
 \item{p}{
 vector of percentiles.  This is used only for quantile predictions.
 }
-\item{ripley}{
-temporary arg. Compute the standard errors of quantile predictions in
-the way shown in an a draft of Ripley and Venables, i.e., partially ignoring
-the variance in the estimate of scale.
-}}
+}
 \value{
 a vector or matrix of predicted values.
 }

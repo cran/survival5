@@ -2,10 +2,11 @@
 \alias{colon}
 \title{Chemotherapy for Stage B/C colon cancer}
 \usage(data(colon))
-\description{These are data from the first successful trials of
+\description{These are data from one of the first successful trials of
     adjuvant chemotherapy for colon cancer. Levamisole is a low-toxicity
     compound previously used to treat worm infestations in animals; 5-FU
-    is a moderately toxic (as these things go) chemotherapy agent.}
+    is a moderately toxic (as these things go) chemotherapy agent. There
+  are two records per person, one for recurrence and one for death}
 \format{
 \tabular{ll}{
 id:\tab id\cr
@@ -24,7 +25,7 @@ extent:\tab Extent of local spread (1=submucosa, 2=muscle, 3=serosa,
 surg:\tab time from surgery to registration (0=short, 1=long)\cr
 node4:\tab more than 4 positive lymph nodes\cr
 time:\tab days until death\cr
-etype:\tab ?\cr
+etype:\tab 1=recurrence,2=death\cr
 }}
 
 \source{Danyu Lin}

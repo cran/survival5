@@ -1,3 +1,5 @@
+2.1  options for `n' in print.survfit, [.Surv fixed for R1.1.1.
+
 2.0   New code from Terry Therneau: faster cox regression, bug fixes.
 
 1.1-6 plot.survfit(,fun="cloglog") broke with mark.times=TRUE when the first event was a censoring.

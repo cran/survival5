@@ -7,11 +7,8 @@ survfit <- function (formula, data, weights, subset, na.action, ...) {
     # (This allows people to leave off the "~1" from a formula)
     if ((mode(call[[2]]) == 'call' &&  call[[2]][[1]] == as.name('Surv'))
 		|| inherits(formula, 'Surv'))  {
-	# The dummy function stops an annoying warning message "Looking for
-	#  'formula' of mode function, ignored one of mode ..."
-	##xx <- function(x) formula(x)
-	##formula <- xx(paste(deparse(call[[2]]), 1, sep="~"))
         formula<-eval(parse(text=paste(deparse(call[[2]]),1,sep="~")))
+        ## need to add back the formula environment
         environment(formula)<-parent.frame()
 	}
 
