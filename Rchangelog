@@ -1,3 +1,4 @@
+1.1-6 plot.survfit(,fun="cloglog") broke with mark.times=TRUE when the first event was a censoring.
 1.1-5 more documentation fixes, added data(stanford2), modified frailty()
    to avoid bug in new save()/load() code.
 1.1-4  documentation and data fixes, particularly survreg.distributions

@@ -1,7 +1,7 @@
 This is an R port of survival5
 
-It requires version 0.90 or later of R and you will probably want to
-install the date library. 
+It requires version 1.0 or later of R and you will probably want to
+install the date package. 
 
 The main new feature since survival4 is penalised (partial) likelihood.
 Both survreg() and coxph() can now fit frailty models, smoothing splines,

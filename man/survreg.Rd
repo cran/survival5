@@ -1,6 +1,5 @@
 \name{survreg}
 \alias{survreg}
-\alias{survreg.old}
 \alias{survReg}
 \title{
 Regression for a Parametric Survival Model

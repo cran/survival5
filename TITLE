@@ -1,1 +1,1 @@
-survival5	Survival analysis [needs library(splines)]
+survival5       Survival analysis, including penalised likelihood.
