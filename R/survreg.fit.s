@@ -52,7 +52,8 @@ survreg.fit<- function(x, y, weights, offset, init, controlvals, dist,
 	    survlist$density <- as.vector(as.double(temp))
 	    survlist})
 	survlist <- list(z=double(n2), density=double(n2*5))
-	.C("init_survcall", as.integer(sys.nframe()), expr1)
+	.C("init_survcall", as.integer(sys.nframe()), expr1,
+                    PACKAGE="survival5")
 	}
     else fitter <- 'survreg2'
 
@@ -133,7 +134,8 @@ survreg.fit<- function(x, y, weights, offset, init, controlvals, dist,
 		       as.double(eps),
 		       as.double(toler.chol), 
 		       as.integer(dnum),
-		       debug = as.integer(floor(debug/2)))
+		       debug = as.integer(floor(debug/2)),
+                    PACKAGE="survival5")
 	}
 
     #
@@ -184,7 +186,8 @@ survreg.fit<- function(x, y, weights, offset, init, controlvals, dist,
 		   as.double(eps),
 	           as.double(toler.chol), 
 		   as.integer(dnum),
-	           debug = as.integer(debug))
+	           debug = as.integer(debug),
+                    PACKAGE="survival5")
 
     if (debug>0) browser()
     if (iter.max >1 && fit$flag > nvar2) {

@@ -83,6 +83,8 @@
 #include <math.h>
 #include <stdio.h>
 #include "survS.h"
+#include "Rdefines.h"
+#include "Rinternals.h"
 #include "survproto.h"
 
 static double **covar, **cmat, **cmat2;

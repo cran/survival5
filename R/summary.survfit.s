@@ -58,7 +58,8 @@ summary.survfit <- function(fit, times, censored=F, scale=1, ...) {
 				  as.double(times),
 				  as.integer(nstrat),
 				  indx = integer(nstrat*length(times)),
-				  indx2= integer(nstrat*length(times)) )
+				  indx2= integer(nstrat*length(times)),
+                    PACKAGE="survival5" )
 	keep <- temp$indx >=0
 	indx <- temp$indx[keep]
 	ones <- (temp$indx2==1)[keep]

@@ -60,7 +60,8 @@ agexact.fit <- function(x, y, strata, offset, iter.max,
 		   integer(2*n),
 		   as.double(eps),
 		   as.double(toler.chol),
-		   sctest=double(1) )
+		   sctest=double(1)
+                ,PACKAGE="survival5")
 
     var <- matrix(agfit$imat,nvar,nvar)
     coef <- agfit$coef
@@ -88,7 +89,8 @@ agexact.fit <- function(x, y, strata, offset, iter.max,
 		   score,
 		   rep(1.0, n),
 		   newstrat,
-		   resid=double(n))
+		   resid=double(n),
+                PACKAGE="survival5")
     resid _ double(n)
     resid[sorted] <- agres$resid
     names(resid) <- rownames

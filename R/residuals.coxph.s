@@ -75,7 +75,8 @@ residuals.coxph <-
 			    score * weights,
 			    as.integer(newstrat),
 			    as.integer(method=='efron'),
-			    double(3*nvar))
+			    double(3*nvar),
+                    PACKAGE="survival5")
 
 	deaths <- y[,3]==1
 
@@ -107,7 +108,8 @@ residuals.coxph <-
 				as.double(weights),
 				as.integer(method=='efron'),
 				resid= double(n*nvar),
-				double(2*nvar))$resid
+				double(2*nvar),
+                    PACKAGE="survival5")$resid
 	    }
 	else {
 	    resid<- .C("agscore",
@@ -120,7 +122,8 @@ residuals.coxph <-
 				as.double(weights),
 				as.integer(method=='efron'),
 				resid=double(n*nvar),
-				double(nvar*6))$resid
+				double(nvar*6),
+                    PACKAGE="survival5")$resid
 	    }
 	if (nvar >1) {
 	    rr <- matrix(0, n, nvar)

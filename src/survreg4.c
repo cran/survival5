@@ -67,8 +67,11 @@
 #include <math.h>
 #include <float.h>
 #include "survS.h"
+#include "Rdefines.h"
+#include "Rinternals.h"
 #include "survproto.h"
 
+#define  PI	M_PI
 #define  SPI    2.506628274631001     /* sqrt(2*pi) */
 #define  ROOT_2 1.414213562373095
 

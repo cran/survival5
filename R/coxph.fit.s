@@ -65,7 +65,8 @@ coxph.fit <- function(x, y, strata, offset, init, iter.max,
 		   double(2*n + 2*nvar*nvar + 3*nvar),
 		   as.double(eps),
 		   as.double(toler.chol),
-		   sctest=as.double(method=="efron") )
+		   sctest=as.double(method=="efron"),
+                    PACKAGE="survival5" )
 
     if (nullmodel) {
 	score <- exp(offset[sorted])
@@ -76,7 +77,8 @@ coxph.fit <- function(x, y, strata, offset, init, iter.max,
 				newstrat,
 				as.double(score),
 				as.double(weights),
-				resid=double(n))
+				resid=double(n),
+                    PACKAGE="survival5")
 	resid <- double(n)
 	resid[sorted] <- coxres$resid
 	names(resid) <- rownames
@@ -112,7 +114,8 @@ coxph.fit <- function(x, y, strata, offset, init, iter.max,
 				newstrat,
 				as.double(score),
 				as.double(weights),
-				resid=double(n))
+				resid=double(n),
+                    PACKAGE="survival5")
 	resid <- double(n)
 	resid[sorted] <- coxres$resid
 	names(resid) <- rownames

@@ -244,7 +244,7 @@ p5 <- predict(fit1, type='lp', se=T)
 aeq(p3$fit + attr(p3$fit, 'constant'), p4$fit)
 
 aeq(p4$fit, p5$fit)
-#!aeq(p3$se.fit, p4$se.fit)  #this one should be false
+!aeq(p3$se.fit, p4$se.fit)  #this one should be false
 aeq(p4$se.fit, p5$se.fit)  #this one true
 
 #

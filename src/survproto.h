@@ -88,7 +88,7 @@ void coxdetail(int   *nusedx,   int   *nvarx,    int   *ndeadx,
 	       double *u2,       double *var,      double *work);
 
 void coxfit2(int   *maxiter,   int   *nusedx,    int   *nvarx, 
-	     double *time,      int   *status,    double *covar2, 
+	     double *Time,      int   *status,    double *covar2, 
 	     double *offset,	double *weights,   int   *strata,
 	     double *means,     double *beta,      double *u, 
 	     double *imat2,     double loglik[2],  int   *flag, 
@@ -112,14 +112,14 @@ void coxfit4_b(int *maxiter, int *nusedx, int *nvarx,
 
 void coxfit4_c (int *nusedx, int *nvar, int *methodx, double *expect);
 
-void coxfit_null(int   *nusedx,    int   *method,   double *time, 
+void coxfit_null(int   *nusedx,    int   *method,   double *Time, 
 		 int   *status,    double *score,    double *weights, 
 		 int   *strata,    double *loglik, double *resid);
 
 void coxhaz2(int   *n,      double *score,   int   *mark, 
 	     int   *strata, double *hazard,  double *cumhaz);
 
-void coxmart(int   *sn,     int   *method,    double *time, 
+void coxmart(int   *sn,     int   *method,    double *Time, 
 	     int   *status, int   * strata,   double *score, 
 	     double *wt,     double *expect);
 
@@ -181,7 +181,7 @@ int rnewton(int    *maxiter,   int  n,        int  nvar,        double *beta,
 void surv_callback(double *z, double *dist, int n, void *fn, void *rho);
 
 void survdiff2(int   *nn,     int   *nngroup,    int   *nstrat, 
-	       double *rho,    double *time,       int   *status, 
+	       double *rho,    double *Time,       int   *status, 
 	       int   *group,  int   *strata,	   double *obs, 
 	       double *exp,    double *var,        double *risk, 
 	       double *kaplan);
@@ -192,7 +192,7 @@ void survfit2(int   *sn,     double *y,        int   *ny,
 	      double *varh,   double *risksum,  int   *snsurv);
 
 void survindex2(int   *n,     double *stime,   int   *strata, 
-		int   *ntime, double *time,    int   *nstrat, 
+		int   *ntime, double *Time,    int   *nstrat, 
 		int   *indx,  int   *indx2);
 
 void survreg2(int   *maxiter,   int   *nx,    int   *nvarx, 

@@ -80,7 +80,8 @@ survfit.coxph.null <-
 			  double(2),
 			  as.integer(1),
 			  double(1),
-			  newrisk= as.double(1))
+			  newrisk= as.double(1),
+                    PACKAGE="survival5")
     nsurv <- surv$nsurv[1]
     ntime <- 1:nsurv
     tsurv <- surv$surv[ntime]

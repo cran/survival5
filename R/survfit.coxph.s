@@ -155,7 +155,8 @@ survfit.coxph <-
 			     as.double(y2),
 			     as.double(x2),
 			     as.double(newrisk),
-			     as.integer(strata2) )
+			     as.integer(strata2),
+                    PACKAGE="survival5" )
 	ntime <- 1:surv$nsurv
 	temp <- (matrix(surv$y, ncol=3))[ntime,]
 	temp <- list(time = temp[,1],
@@ -178,7 +179,8 @@ survfit.coxph <-
 			      double(3*nvar),
 			      as.integer(n2),
 			      as.double(x2),
-			      as.double(newrisk))
+			      as.double(newrisk),
+                    PACKAGE="survival5")
 	nsurv <- surv$nsurv[1]
 	ntime <- 1:nsurv
 	if (n2>1) {

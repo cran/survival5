@@ -1,4 +1,3 @@
-if (!exists("all.equal")){
 all.equal<-function(x,y,tol=1e-8){
   if (length(x)!=length(y)) return(F)
   if (is.list(x)){
@@ -11,5 +10,4 @@ all.equal<-function(x,y,tol=1e-8){
   rval<-r<tol
   attr(rval,"tol")<-r
   rval
-}
 }

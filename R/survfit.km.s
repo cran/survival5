@@ -43,7 +43,8 @@ survfit.km <- function(x, y, casewt=rep(1,n),
 			  surv=double(n),
 			  varhaz=double(n),
 			  risksum=double(n),
-			  ntime = integer(1))
+			  ntime = integer(1),
+                    PACKAGE="survival5")
     ntime <- surv$ntime
     if (error.int==1) surv$varhaz[surv$surv==0] <- NA
     ntime <- 1:ntime

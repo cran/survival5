@@ -1,6 +1,6 @@
 
 R : Copyright 1999, The R Development Core Team
-Version 0.90.0  (November 22, 1999)
+Version 0.90.0 Under development (unstable) (September 13, 1999)
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
@@ -25,7 +25,7 @@ Attaching Package "package:survival5":
 
 	The following object(s) are masked from package:base :
 
-	 sort.list 
+	 all.equal 
 
 > library(date)
 > #options(na.action="na.omit", contrasts='contr.treatment')
@@ -222,8 +222,7 @@ $fit
 -0.737642        NA  0.737642  0.737642  0.737642 -0.737642 -0.737642 
 
 $se.fit
-        1         2         3         4         5         6         7 
-0.6278671        NA 0.6278671 0.6278671 0.6278671 0.6278671 0.6278671 
+[1] 0.6278671        NA 0.6278671 0.6278671 0.6278671 0.6278671 0.6278671
 
 > predict(fit, type='risk', se.fit=T)
 $fit
@@ -431,8 +430,12 @@ Call: survfit.coxph(object = fitx, newdata = c(fitx$means[1], 0))
 > temp2 <- byhand3(fit$coef)
 > all.equal(temp$surv, temp2$surv)
 [1] TRUE
+attr(,"tol")
+[1] 0
 > all.equal(temp2$std, temp$std.err)
 [1] TRUE
+attr(,"tol")
+[1] 2.220446e-16
 > 
 > temp2
 $time
@@ -477,6 +480,8 @@ $wt
 > realhaz <- cumsum(c(1/(3*bb+3), 2/(bb+3), 1))
 > all.equal(sfit$surv, exp(-rep(realhaz,2)))
 [1] TRUE
+attr(,"tol")
+[1] 0
 > 
 > realvar <- cumsum(c( (1/(3*bb+3))^2, 2/(bb+3)^2, 1))
 > dd <- cumsum(c( (bb/(bb+1))*(1/(3*bb+3)),
@@ -484,6 +489,8 @@ $wt
 > realvar <- realvar + dd^2 * fit$var
 > all.equal(sfit$std, sqrt(rep(realvar,2)))
 [1] TRUE
+attr(,"tol")
+[1] 0
 > summary(sfit)
 Call: survfit.coxph(object = fit, newdata = list(x = 0))
 
@@ -513,6 +520,8 @@ Call: survfit.coxph(object = fit, newdata = list(x = 0))
 > realkm <- cumprod(c((1- bb/(3*bb+3))^(1/bb), temp$minimum, 0))
 > all.equal(sfit$surv, rep(realkm,2))
 [1] TRUE
+attr(,"tol")
+[1] 2.96065e-09
 > 
 > realvar <- cumsum(c( 1/((3*bb+3)*(2*bb+3)), 2/((bb+3)*2), 1))
 > dd <- cumsum(c( (bb/(bb+1))*(1/(3*bb+3)),
@@ -520,6 +529,8 @@ Call: survfit.coxph(object = fit, newdata = list(x = 0))
 > realvar <- realvar + dd^2 * fit$var
 > all.equal(sfit$std, sqrt(rep(realvar,2)))
 [1] TRUE
+attr(,"tol")
+[1] 1.387779e-17
 > summary(sfit)
 Call: survfit.coxph(object = fit, newdata = list(x = 0), type = "kalb")
 
@@ -547,6 +558,8 @@ Call: survfit.coxph(object = fit, newdata = list(x = 0), type = "kalb")
 > realhaz <- cumsum(c(1/(3*bb+3), 1/(bb+3) + 2/(bb+5), 1))
 > all.equal(sfit$surv, exp(-rep(realhaz,2)))
 [1] TRUE
+attr(,"tol")
+[1] 0
 > 
 > realvar <- cumsum(c( (1/(3*bb+3))^2, 1/(bb+3)^2 + 4/(bb+5)^2, 1))
 > dd <- cumsum(c( (bb/(bb+1))*(1/(3*bb+3)),
@@ -554,6 +567,8 @@ Call: survfit.coxph(object = fit, newdata = list(x = 0), type = "kalb")
 > realvar <- realvar + dd^2 * fit$var
 > all.equal(sfit$std, sqrt(rep(realvar,2)))
 [1] TRUE
+attr(,"tol")
+[1] 5.551115e-17
 > summary(sfit)
 Call: survfit.coxph(object = fit, newdata = list(x = 0))
 
@@ -691,9 +706,13 @@ aml$x=Nonmaintained 12       11     7.31      1.86      3.40
 > chaz <- cumsum(deaths/denom)
 > all.equal(sfit$surv, as.vector(exp(-chaz[deaths>0])))
 [1] TRUE
+attr(,"tol")
+[1] 0
 > cvar <- cumsum(deaths/denom^2)
 > all.equal(sfit$std^2, as.vector(cvar[deaths>0]))
 [1] TRUE
+attr(,"tol")
+[1] 8.673617e-19
 > summary(sfit)
 Call: survfit.coxph.null(object = tfit, type = "aalen")
 
@@ -749,7 +768,7 @@ Likelihood ratio test=3.38  on 1 df, p=0.0658  n= 23
 > x2 <- coxph(Surv(rep(0,23),time, status) ~x, aml, method='efron')
 > x1$coef - x2$coef
 xNonmaintained 
-  1.110223e-16 
+  2.220446e-16 
 > 
 > rm(x1, x2, atime, denom, deaths, chaz,cvar, tfit, sfit, temp, temp2, fit)
 > #
@@ -770,10 +789,16 @@ some row.names duplicated: 8,9,10,11,12,13,14  --> row.names NOT used. in: data.
 > 
 > all.equal(resid(fit1) , (resid(fit2))[1:n])
 [1] TRUE
+attr(,"tol")
+[1] 0
 > all.equal(resid(fit1, type='score') , (resid(fit2, type='score'))[1:n])
 [1] TRUE
+attr(,"tol")
+[1] 0
 > all.equal(resid(fit1, type='schoe') , (resid(fit2, type='schoe'))[1:ndead])
 [1] TRUE
+attr(,"tol")
+[1] 0
 > 
 > #AG model
 > temp <- as.matrix(test2)
@@ -789,10 +814,16 @@ some row.names duplicated: 11,12,13,14,15,16,17,18,19,20  --> row.names NOT used
 > 
 > all.equal(resid(fit1) , (resid(fit2))[1:n])
 [1] TRUE
+attr(,"tol")
+[1] 0
 > all.equal(resid(fit1, type='score') , (resid(fit2, type='score'))[1:n])
 [1] TRUE
+attr(,"tol")
+[1] 0
 > all.equal(resid(fit1, type='schoe') , (resid(fit2, type='schoe'))[1:ndead])
 [1] TRUE
+attr(,"tol")
+[1] 0
 > #
 > # A test to exercise the "infinity" check on 2 variables
 > #
@@ -847,6 +878,8 @@ Loglik converged before variable 1 ,2; beta may be infinite.  in: fitter(X, Y, s
 -0.3655447         NA  0.7191709 -0.2808291 -0.4383383  0.7310859 -0.3655447 
 > all.equal(resid(fitc), resid(fit))
 [1] TRUE
+attr(,"tol")
+[1] 2.220446e-16
 > 
 > resid(fit0, type='score')
           1           2           3           4           5           6 
@@ -1506,6 +1539,8 @@ Call: survfit.coxph(object = fit, newdata = list(age = c(30, 70), ecog.ps = c(2,
 > rr <- resid(fit, type='dfbeta')
 > all.equal(as.vector(t(rr) %*% rr), as.vector(fit$var))
 [1] TRUE
+attr(,"tol")
+[1] 0
 > temp _ scan("data.jasa", what=list(id=0, b.mo=0, b.d=0, b.y=0,
 +                                        a.mo=0, a.d=0, a.y=0,
 +                                        t.mo=0, t.d=0, t.y=0,
@@ -1887,10 +1922,16 @@ Call: survfit.coxph(object = sfit.1, newdata = data, individual = T)
 > 
 > all.equal(s1$surv, s2$surv)
 [1] TRUE
+attr(,"tol")
+[1] 0
 > all.equal(s1$surv, s3$surv)
 [1] TRUE
+attr(,"tol")
+[1] 2.220446e-16
 > all.equal(s1$surv, s4$surv)
 [1] TRUE
+attr(,"tol")
+[1] 2.220446e-16
 > 
 > # Still the same answer, fit multiple strata at once
 > #  Strata 1 has independent coefs of strata 2, so putting in
@@ -1900,11 +1941,13 @@ Call: survfit.coxph(object = sfit.1, newdata = data, individual = T)
 > fit <- coxph(Surv(rep(start,2), rep(stop,2), rep(event,2)) ~
 + 			rep(age,2)*strata(ss) + I(rep(age,2)^2*ss) )
 > fit$coef[1] - fit3$coef
- rep(age, 2) 
-1.040834e-17 
+  rep(age, 2) 
+-1.040834e-17 
 > s4 <- survfit(fit, c(fit3$means, 0,0))
 > all.equal(s4$surv[1:(s4$strata[1])],  s3$surv)
 [1] TRUE
+attr(,"tol")
+[1] 0
 > detach("jasa1")
 > # A subset of some local data on lung cancer patients.  A useful internal test
 > #  because it has multiple strata and lots of missing values.
@@ -2239,8 +2282,12 @@ Likelihood ratio test=4.16  on 3 df, p=0.245  n= 27
 > 
 > all.equal(fit1$loglik[2], fit2$loglik)
 [1] TRUE
+attr(,"tol")
+[1] 0
 > all.equal(fit1$resid, fit2$resid)
 [1] TRUE
+attr(,"tol")
+[1] 0
 > 
 > 
 > fit1 <- coxph(Surv(start, stop, event) ~ rx + strata(number), bladder2, iter=0)
@@ -2248,8 +2295,12 @@ Likelihood ratio test=4.16  on 3 df, p=0.245  n= 27
 > 
 > all.equal(fit1$loglik[2], fit2$loglik[2])
 [1] TRUE
+attr(,"tol")
+[1] 0
 > all.equal(fit1$resid, fit2$resid)
 [1] TRUE
+attr(,"tol")
+[1] 0
 > #  Tests of expected survival
 > 
 > #
@@ -2343,6 +2394,8 @@ Likelihood ratio test=4.16  on 3 df, p=0.245  n= 27
 > 
 > print(all.equal(exp1$surv, apply(exp2$surv, 1, mean)))
 [1] TRUE
+attr(,"tol")
+[1] 3.330669e-16
 > 
 > #
 > # Check that adding more time points doesn't change things
@@ -2392,6 +2445,8 @@ Likelihood ratio test=4.16  on 3 df, p=0.245  n= 27
 > 
 > all.equal(exp1$surv[match(futime, xtime)], cumprod(con))
 [1] TRUE
+attr(,"tol")
+[1] 2.220446e-16
 > cumprod(con)
 [1] 0.9981625 0.9970151 0.9959036 0.9948157 0.9937550 0.9927025
 > 
@@ -2420,6 +2475,8 @@ Likelihood ratio test=4.16  on 3 df, p=0.245  n= 27
 > 
 > all.equal(as.vector(efit), as.vector(efit2))  #ignore mismatched name attrib
 [1] TRUE
+attr(,"tol")
+[1] 1.110223e-16
 > 
 > #
 > # Now test the direct-adjusted curve (Ederer)
@@ -2431,9 +2488,13 @@ Likelihood ratio test=4.16  on 3 df, p=0.245  n= 27
 > d2 <- exp(outer(-chaz, risk))
 > all.equal(as.vector(direct), as.vector(d2))   #this tests survfit
 [1] TRUE
+attr(,"tol")
+[1] 1.110223e-16
 > 
 > all.equal(as.vector(efit$surv), as.vector(apply(direct,1,mean)))  #direct
 [1] TRUE
+attr(,"tol")
+[1] 1.110223e-16
 > 
 > 
 > #
@@ -2457,6 +2518,8 @@ Likelihood ratio test=4.16  on 3 df, p=0.245  n= 27
 > 
 > all.equal(as.vector(efit$surv), as.vector(cumprod(hak2)))
 [1] TRUE
+attr(,"tol")
+[1] 8.131516e-20
 > 
 > #
 > #  Now do the conditional estimate
@@ -2472,6 +2535,8 @@ Likelihood ratio test=4.16  on 3 df, p=0.245  n= 27
 > 
 > all.equal(as.vector(efit$surv), as.vector(cumprod(cond)))
 [1] TRUE
+attr(,"tol")
+[1] 5.551115e-17
 > 
 > rm(wt, cond, efit, tt, surv, hak1, hak2)
 > rm(fit, dummy, ss, efit2, chaz, chaz2, risk)
@@ -2779,11 +2844,17 @@ x=Nonmaintained 12       11     7.31      1.86      3.40
 > #Now temp1=observed, temp2=expected
 > all.equal(c(temp1), c(fit$obs))
 [1] TRUE
+attr(,"tol")
+[1] 0
 > all.equal(c(temp2), c(fit$exp))
 [1] TRUE
+attr(,"tol")
+[1] 1.776357e-15
 > 
 > all.equal(fit$var[-1,-1], solve(cfit$var))
 [1] TRUE
+attr(,"tol")
+[1] 8.526513e-14
 > 
 > rm(tdata, temp1, temp2)
 > # 
@@ -2819,10 +2890,16 @@ x=Nonmaintained 12       11     7.31      1.86      3.40
 > dimnames(xx) <- list(c('0-18', paste(18:30, 19:31, sep='-')), 1954:1964)
 > all.equal(xx, py1$pyears)
 [1] TRUE
+attr(,"tol")
+[1] 0
 > all.equal(203, py1$offtable)
 [1] TRUE
+attr(,"tol")
+[1] 0
 > all.equal(1*(xx>0), py1$n)
 [1] TRUE
+attr(,"tol")
+[1] 0
 > 
 > #
 > # Now with expecteds
@@ -2832,10 +2909,16 @@ x=Nonmaintained 12       11     7.31      1.86      3.40
 + 	     scale=1, ratetable=survexp.usr ) #output in days
 > all.equal(xx, py2$pyears)
 [1] TRUE
+attr(,"tol")
+[1] 0
 > all.equal(203, py2$offtable)
 [1] TRUE
+attr(,"tol")
+[1] 0
 > all.equal(1*(xx>0), py2$n)
 [1] TRUE
+attr(,"tol")
+[1] 0
 > 
 > 
 > py3 <-  pyears(temp.time ~ temp.age + temp.yr
@@ -2843,10 +2926,16 @@ x=Nonmaintained 12       11     7.31      1.86      3.40
 + 	     scale=1, ratetable=survexp.usr , expect='pyears')
 > all.equal(py2$n, py3$n)
 [1] TRUE
+attr(,"tol")
+[1] 0
 > all.equal(py2$pyear, py3$pyear)
 [1] TRUE
+attr(,"tol")
+[1] 0
 > all.equal(py3$n, 1*(py3$expect>0))
 [1] TRUE
+attr(,"tol")
+[1] 0
 > 
 > # Now, compute the py3 result "by hand".  Since there is only one person
 > #   it can be derived from py2.
@@ -2861,7 +2950,9 @@ x=Nonmaintained 12       11     7.31      1.86      3.40
 > # They might not be exactly equal, since the C code tracks changes in the
 > #   rate tables that occur -within- an interval.  So try for 7 digits
 > all.equal(round(integral,4)/10000, round(xx2,4)/10000)
-[1] "Mean relative  difference: 4.7713e-07"
+[1] FALSE
+attr(,"tol")
+[1] 1e-08
 > 
 > # Cut off the bottom of the table, instead of the side
 > temp.age <- tcut(temp2-temp1, floor(c(-1, (18:27 * 365.24))),
@@ -2870,8 +2961,12 @@ x=Nonmaintained 12       11     7.31      1.86      3.40
 > py4 <- eval(py3$call)
 > all.equal(py4$pyear, py3$pyear[1:10,])
 [1] TRUE
+attr(,"tol")
+[1] 0
 > all.equal(py4$expect, py3$expect[1:10,])
 [1] TRUE
+attr(,"tol")
+[1] 0
 > 
 > rm(xx1, xx2, xx3, cumhaz, temp1, temp2)
 > rm(temp.age, temp.yr, temp.time, xx)
@@ -2888,8 +2983,12 @@ x=Nonmaintained 12       11     7.31      1.86      3.40
 > zed   <- (which[1]+1):(which[3])
 > all.equal(surv1$surv[zed], temp$surv)
 [1] TRUE
+attr(,"tol")
+[1] 0
 > all.equal(surv1$time[zed], temp$time)
 [1] TRUE
+attr(,"tol")
+[1] 0
 > 
 > #
 > # Now a result with a matrix of survival curves
@@ -2900,14 +2999,26 @@ x=Nonmaintained 12       11     7.31      1.86      3.40
 > zed <- 1:which[1]
 > all.equal(surv2$surv[zed,1], surv2[1,1]$surv)
 [1] TRUE
+attr(,"tol")
+[1] 0
 > all.equal(surv2$surv[zed,2], surv2[1,2]$surv)
 [1] TRUE
+attr(,"tol")
+[1] 0
 > all.equal(surv2$surv[zed,3], surv2[1,3]$surv)
 [1] TRUE
+attr(,"tol")
+[1] 0
 > all.equal(surv2$surv[zed, ], surv2[1,1:3]$surv)
 [1] TRUE
+attr(,"tol")
+[1] 0
 > all.equal(surv2$surv[zed],   (surv2[1]$surv)[,1])
 [1] TRUE
+attr(,"tol")
+[1] 0
 > all.equal(surv2$surv[zed, ], surv2[1, ]$surv)
 [1] TRUE
+attr(,"tol")
+[1] 0
 > q()

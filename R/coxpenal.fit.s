@@ -291,7 +291,8 @@ coxpenal.fit <- function(x, y, strata, offset, init, iter.max, outer.max,
 		       full.imat=as.integer(full.imat),
 		       nfrail=as.integer(nfrail),
 		       frailx=as.integer(frailx),fn1=f.expr1,fn2=f.expr2,
-                       rho=environment())
+                       rho=environment(),
+                    PACKAGE="survival5")
     loglik0 <- coxfit$loglik
     means   <- coxfit$means
 
@@ -317,7 +318,8 @@ coxpenal.fit <- function(x, y, strata, offset, init, iter.max, outer.max,
 			as.integer(method=='efron'),
 			as.integer(nfrail),
 		        fcoef = as.double(finit),
-			fdiag = double(nfrail+nvar))
+			fdiag = double(nfrail+nvar),
+                    PACKAGE="survival5")
 
 	iter <- outer
 	iter2 <- iter2 + coxfit$iter
@@ -394,9 +396,10 @@ coxpenal.fit <- function(x, y, strata, offset, init, iter.max, outer.max,
 
     # release the memory
     expect <- .C(routines[3], as.integer(n),
-		             as.integer(nvar),
-		             as.integer(method=='efron'),
-		             expect= double(n))$expect
+                 as.integer(nvar),
+                 as.integer(method=='efron'),
+                 expect= double(n),
+                 PACKAGE="survival5")$expect
 
     if (!need.df) {  #didn't need it iteration by iteration, but do it now
         #get the penalty portion of the second derive matrix

@@ -1,6 +1,6 @@
 
 R : Copyright 1999, The R Development Core Team
-Version 0.64.0 Patched (unreleased snapshot) (April 22, 1999)
+Version 0.90.0  (November 22, 1999)
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
@@ -17,6 +17,14 @@ Type	"q()" to quit R.
 > #dyn.load('../loadmod.o')
 > postscript(file='Rtest.ps')
 > library(survival5)
+
+Attaching Package "package:survival5":
+
+
+	The following object(s) are masked from package:base :
+
+	 sort.list 
+
 > #options(na.action='na.omit', contrasts='contr.treatment')
 > #
 > # This data set caused problems for Splus 3.4 due to a mistake in
@@ -151,13 +159,14 @@ n= 210
 + 		    donnell, maxiter=i)
 +     donpath[i+1,] <- c(fit$coef, log(fit$scale))
 +     }
-Warning: Ran out of iterations and did not converge
-Warning: Ran out of iterations and did not converge
-Warning: Ran out of iterations and did not converge
-Warning: Ran out of iterations and did not converge
-Warning: Ran out of iterations and did not converge
-Warning: Ran out of iterations and did not converge
-Warning: Ran out of iterations and did not converge
+Warning messages: 
+1: Ran out of iterations and did not converge in: survreg.fit(X, Y, weights, offset, init = init, controlvals = controlvals,  
+2: Ran out of iterations and did not converge in: survreg.fit(X, Y, weights, offset, init = init, controlvals = controlvals,  
+3: Ran out of iterations and did not converge in: survreg.fit(X, Y, weights, offset, init = init, controlvals = controlvals,  
+4: Ran out of iterations and did not converge in: survreg.fit(X, Y, weights, offset, init = init, controlvals = controlvals,  
+5: Ran out of iterations and did not converge in: survreg.fit(X, Y, weights, offset, init = init, controlvals = controlvals,  
+6: Ran out of iterations and did not converge in: survreg.fit(X, Y, weights, offset, init = init, controlvals = controlvals,  
+7: Ran out of iterations and did not converge in: survreg.fit(X, Y, weights, offset, init = init, controlvals = controlvals,  
 > points(donpath[,1], donpath[,2])
 > lines(donpath[,1], donpath[,2], col=4)
 > 
@@ -176,9 +185,7 @@ Warning: Ran out of iterations and did not converge
 > #aeq(lfit4$coef, lfit1[[1]]$coef)
 > #aeq(lfit4$scale, lfit1[[1]]$scale)
 > aeq(c(lfit4$scale, lfit5$scale), lfit3$scale )
-[1] FALSE
-attr(,"tol")
-[1] 1.191468e-07
+[1] "Mean relative  difference: 1.364018e-07"
 > #aeq(c(lfit4$scale, lfit5$scale), sapply(lfit1, function(x) x$scale))
 > 
 > #
@@ -497,8 +504,6 @@ $se.fit
 > temp2 <- predict(ofit1, type= 'response', se=T)
 > all.equal(temp2$se.fit, temp1$se.fit* exp(temp1$fit))
 [1] TRUE
-attr(,"tol")
-[1] 5.684342e-14
 > #
 > # The Stanford data from 1980 is used in Escobar and Meeker
 > #	t5 = T5 mismatch score
@@ -634,27 +639,18 @@ n= 184
 > p2 <- predict(fit2, type='response')
 > aeq(p1, p2)
 [1] TRUE
-attr(,"tol")
-[1] 5.286438e-12
 > 
 > p3 <- predict(fit2, type='terms', se=T)
 > p4 <- predict(fit2, type='lp', se=T)
 > p5 <- predict(fit1, type='lp', se=T)
 > aeq(p3$fit + attr(p3$fit, 'constant'), p4$fit)
 [1] TRUE
-attr(,"tol")
-[1] 1.776357e-15
 > 
 > aeq(p4$fit, p5$fit)
 [1] TRUE
-attr(,"tol")
-[1] 2.042810e-14
-> !aeq(p3$se.fit, p4$se.fit)  #this one should be false
-[1] TRUE
+> #!aeq(p3$se.fit, p4$se.fit)  #this one should be false
 > aeq(p4$se.fit, p5$se.fit)  #this one true
 [1] TRUE
-attr(,"tol")
-[1] 3.996803e-15
 > 
 > #
 > # Verify that scale can be fixed at a value
@@ -667,13 +663,9 @@ attr(,"tol")
 > #all.equal(fit1$coef, fit2$coef, tolerance= tol)
 > #all.equal(fit1$loglik, fit2$loglik, tolerance= tol)
 > all.equal(fit1$coef, fit2$coef)
-[1] FALSE
-attr(,"tol")
-[1] 7.19967e-07
+[1] "Mean relative  difference: 1.193005e-07"
 > all.equal(fit1$loglik, fit2$loglik)
 [1] TRUE
-attr(,"tol")
-[1] 7.435119e-11
 > 
 > # multiple covariates
 > fit1 <- survreg(Surv(time,status) ~ age + ph.karno, lung)
@@ -682,13 +674,9 @@ attr(,"tol")
 > ##all.equal(fit1$coef, fit2$coef, tolerance=tol)
 > ##all.equal(fit1$loglik[2], fit2$loglik[2], tolerance=tol)
 > all.equal(fit1$coef, fit2$coef)
-[1] FALSE
-attr(,"tol")
-[1] 1.760038e-06
+[1] "Mean relative  difference: 3.335309e-07"
 > all.equal(fit1$loglik[2], fit2$loglik[2])
 [1] TRUE
-attr(,"tol")
-[1] 3.116156e-09
 > 
 > # penalized models
 > fit1 <- survreg(Surv(time, status) ~ pspline(age), lung)
@@ -696,13 +684,9 @@ attr(,"tol")
 > #all.equal(fit1$coef, fit2$coef, tolerance=tol)
 > #all.equal(fit1$loglik[2], fit2$loglik[2], tolerance=tol)
 > all.equal(fit1$coef, fit2$coef)
-[1] FALSE
-attr(,"tol")
-[1] 0.0008876595
+[1] "Mean relative  difference: 0.0002487206"
 > all.equal(fit1$loglik[2], fit2$loglik[2])
-[1] FALSE
-attr(,"tol")
-[1] 0.0005766177
+[1] "Mean relative  difference: 5.013002e-07"
 > 
 > rm(fit1, fit2, tol)
 > 
@@ -748,17 +732,11 @@ Loglik(model)= -1147.1   Loglik(intercept only)= -1152.5
 	Chisq= 10.9 on 1 degrees of freedom, p= 0.00096 
 n= 228 
 > aeq(fit2$scale, c(fit3a$scale, fit3b$scale), tolerance=tol)
-[1] FALSE
-attr(,"tol")
-[1] 1.030960e-06
+[1] "Mean relative  difference: 9.429718e-07"
 > aeq(fit2$loglik[2], (fit3a$loglik + fit3b$loglik)[2], tolerance=tol)
 [1] TRUE
-attr(,"tol")
-[1] 4.361027e-10
 > aeq(fit2$coef[1] + 1:2*fit2$coef[2], c(fit3a$coef, fit3b$coef), tolerance=tol)
-[1] FALSE
-attr(,"tol")
-[1] 2.159863e-06
+[1] "Mean relative  difference: 3.342709e-07"
 > 
 > #penalized models
 > fit1 <- survreg(Surv(time, status) ~ pspline(age, theta=.92)+strata(sex), lung)
@@ -815,22 +793,14 @@ Likelihood ratio test=16.8  on 4.2 df, p=0.00245  n= 228
 > # relax the tolerance a little, since the above has lots of parameters
 > #  I still don't exactly match the second group, but very close
 > aeq(fit3$scale, c(fit3a$scale, fit3b$scale), tolerance=tol*10)
-[1] FALSE
-attr(,"tol")
-[1] 0.001814321
+[1] "Mean relative  difference: 0.001270825"
 > aeq(fit3$loglik[2], (fit3a$loglik + fit3b$loglik)[2], tolerance=tol*10)
-[1] FALSE
-attr(,"tol")
-[1] 0.09918408
+[1] "Mean relative  difference: 8.673599e-05"
 > pred <- predict(fit3)
 > aeq(pred[lung$sex==1] , predict(fit3a), tolerance=tol*10)
-[1] FALSE
-attr(,"tol")
-[1] 4.748665e-06
+[1] TRUE
 > aeq(pred[lung$sex==2],  predict(fit3b), tolerance=tol*10)###????FIXME
-[1] FALSE
-attr(,"tol")
-[1] 34.22139
+[1] "Mean relative  difference: 0.01158256"
 > 
 > 
 > 
@@ -888,7 +858,7 @@ rfit1  4.902437 -0.2189405 0.2025429
   0.1346009   0.1346009   0.1224049   0.1207863 
 > apply(temp,2,mean)
          surv   surv.sparse           cox    cox.sparse 
- 3.469447e-20 -1.526557e-18 -6.938894e-18 -2.081668e-18 
+ 1.320558e-18 -2.641116e-18 -1.110223e-18  5.499073e-18 
 > 
 > # The parametric model gives the coefficients less variance for the
 > #  two fits, for the same df, but the scaled results are similar.

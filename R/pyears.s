@@ -141,7 +141,8 @@ pyears <- function(formula=formula(data), data=sys.frame(sys.parent()),
 			pn    =double(osize),
 			pcount=double(if(is.Surv(Y)) osize else 1),
 			pexpect=double(osize),
-			offtable=double(1))[17:21]
+			offtable=double(1),
+                    PACKAGE="survival5")[17:21]
 	}
     else {
 	temp <- .C('pyears2',
@@ -157,7 +158,8 @@ pyears <- function(formula=formula(data), data=sys.frame(sys.parent()),
 			pyears=double(osize),
 			pn    =double(osize),
 			pcount=double(if(is.Surv(Y)) osize else 1),
-			offtable=double(1)) [10:13]
+			offtable=double(1),
+                    PACKAGE="survival5") [10:13]
 	}
 
     if (prod(odims) ==1) {  #don't make it an array

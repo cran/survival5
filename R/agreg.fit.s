@@ -39,7 +39,8 @@ agreg.fit <- function(x, y, strata, offset, init, iter.max,
 		       as.double(offset[sorted]),
 		       as.double(weights),
 		       newstrat,
-		       loglik=double(1))
+		       loglik=double(1),
+                    PACKAGE="survival5")
 
 	agres <- .C("agmart",
 		       as.integer(n),
@@ -49,7 +50,8 @@ agreg.fit <- function(x, y, strata, offset, init, iter.max,
 		       score,
 		       as.double(weights),
 		       newstrat,
-		       resid=double(n))
+		       resid=double(n),
+                    PACKAGE="survival5")
 
 	resid _ double(n)
 	resid[sorted] <- agres$resid
@@ -84,7 +86,8 @@ agreg.fit <- function(x, y, strata, offset, init, iter.max,
 		       integer(n),
 		       as.double(eps),
 		       as.double(toler.chol),
-		       sctest=as.double(method=='efron') )
+		       sctest=as.double(method=='efron'),
+                    PACKAGE="survival5" )
 
 	var <- matrix(agfit$imat,nvar,nvar)
 	coef <- agfit$coef
@@ -112,7 +115,8 @@ agreg.fit <- function(x, y, strata, offset, init, iter.max,
 		       score,
 		       as.double(weights),
 		       newstrat,
-		       resid=double(n))
+		       resid=double(n),
+                    PACKAGE="survival5")
 
 	resid _ double(n)
 	resid[sorted] <- agres$resid

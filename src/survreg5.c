@@ -62,6 +62,8 @@
 #include <math.h>
 #include <float.h>
 #include "survS.h"
+#include "Rdefines.h"
+#include "Rinternals.h"
 #include "survproto.h"
 
 static double **funs, *z;

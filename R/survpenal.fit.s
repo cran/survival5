@@ -343,7 +343,8 @@ survpenal.fit<- function(x, y, weights, offset, init, controlvals, dist,
 	       as.double(eps),
 	       as.double(toler.chol), 
 	       as.integer(dnum),
-	       debug = as.integer(floor(debug/2)), fdensity, environment())
+	       debug = as.integer(floor(debug/2)), fdensity, environment(),
+                    PACKAGE="survival5")
 
     # The "effective n" of the model
     temp <-  mean(exp(fit0$coef[-1]))   #overall sd
@@ -402,7 +403,8 @@ survpenal.fit<- function(x, y, weights, offset, init, controlvals, dist,
 		   as.integer(full.imat),
 		   as.integer(nfrail),
 		   as.integer(frailx),
-	           fdiag = double(nvar3),f.expr1,f.expr2,fdensity, environment())
+	           fdiag = double(nvar3),f.expr1,f.expr2,fdensity, environment(),
+                    PACKAGE="survival5")
 
 	if (debug>0) browser()
 	iter <- iterx

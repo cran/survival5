@@ -150,7 +150,8 @@ survexp <- function(formula=formula(data), data=sys.frame(sys.parent()),
 					  as.double(times),
 					  as.integer(1),
 					  indx = integer(length(times)),
-					  indx2= integer(length(times)) )
+					  indx2= integer(length(times)),
+                    PACKAGE="survival5" )
 		keep <- temp2$indx[temp2$indx>0]
 		}
 

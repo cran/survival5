@@ -89,7 +89,8 @@
 */
 #include <math.h>
 #include <stdio.h>
-#include "survS.h"
+#include "Rdefines.h"
+#include "Rinternals.h"
 #include "survproto.h"
 
 
@@ -98,7 +99,7 @@ static double *mark, *wtave;
 static double *a, *oldbeta, *a2;
 static double *offset, *weights;
 static int    *status, *frail, *strata;
-static double *score, *time;
+static double *score, *Time;
 static double *tmean;
 static int    ptype, pdiag;
 static double *ipen, *upen, logpen;
@@ -164,7 +165,7 @@ void coxfit4_a(int *nusedx, int *nvarx, double *yy,
     offset  = weights + nused;
     score   = offset + nused;
     tmean   = score + nused;
-    time    = tmean + nvar2;
+    Time    = tmean + nvar2;
     status  = Calloc(2*nused, int);
     strata  = status + nused;
     for (i=0; i<nused; i++) {
@@ -172,7 +173,7 @@ void coxfit4_a(int *nusedx, int *nvarx, double *yy,
 	offset[i]  = offset2[i];
 	status[i]  = yy[nused +i];
 	strata[i]  = strata2[i];
-	time[i]    = yy[i];
+	Time[i]    = yy[i];
         }
     strata[nused-1] =1;  /* failsafe */   
 
@@ -201,7 +202,7 @@ void coxfit4_a(int *nusedx, int *nvarx, double *yy,
     temp=0;
     j=0;
     for (i=nused-1; i>0; i--) {
-	if ((time[i]==time[i-1]) & (strata[i-1] != 1)) {
+	if ((Time[i]==Time[i-1]) & (strata[i-1] != 1)) {
 	    j += status[i];
 	    temp += status[i]* weights[i];
 	    mark[i]=0;
@@ -606,7 +607,7 @@ void coxfit4_c (int *nusedx, int *nvar, int *methodx, double *expect) {
 	    denom = expect[person];
 	    temp2  = 0; 
 	    efron_wt =0;
-	    for (i=person; time[i]==time[person]; i++) {
+	    for (i=person; Time[i]==Time[person]; i++) {
 		efron_wt += score[i]*status[i] * weights[i];
 		temp2 += status[i] * weights[i];
 		if (strata[i]==1) break;
@@ -626,7 +627,7 @@ void coxfit4_c (int *nusedx, int *nvar, int *methodx, double *expect) {
                     }
 	        }
 
-	    for (i=person; time[i]==time[person]; i++) {
+	    for (i=person; Time[i]==Time[person]; i++) {
 		if (status[i]==0) expect[i] = score[i]*hazard;
 		else              expect[i] = score[i]*hazard2;
 		j=i;

@@ -46,6 +46,8 @@
 #include <math.h>
 #include <float.h>
 #include "survS.h"
+#include "Rdefines.h"
+#include "Rinternals.h"
 #include "survproto.h"
 
 static int    nvar, nvar2, nstrat;
