@@ -26,7 +26,7 @@ time-dependent logit scores.
 
 
 Because of the time dependent variables, the new data frame will have many
-more rows that the original data, approximately #rows * #deaths /2.
+more rows that the original data, approximately \#rows * \#deaths /2.
 }
 \section{METHOD}{
 A time-dependent cox model can now be fit to the new data.

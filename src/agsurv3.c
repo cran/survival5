@@ -1,5 +1,4 @@
 /*  SCCS @(#)agsurv3.c	5.3 10/27/98
-/*
 ** Create the cohort survival curve(s) for a set of subjects.
 **
 **   This is similar in output to pyears3.  However, the hard part now is
@@ -83,18 +82,18 @@ void agsurv3(int   *sn,    int   *snvar,    int   *sncurve,
     int npt,
 	nvar2,
 	method;
-    int kk, psave;
+    int kk=1, psave; /*-Wall*/
     int itime;
     int person;
     int deaths, nrisk;
     int need;
     double *a, *a2;
-    double weight,
+    double weight=1, /*-Wall*/
 	   e_denom,
 	   denom;
     double inc,
 	   sumt,
-	   km;
+	   km=1; /*-Wall*/
     double temp,
 	   downwt,
 	   d2;
@@ -102,6 +101,7 @@ void agsurv3(int   *sn,    int   *snvar,    int   *sncurve,
 	   varhaz;
     double **oldx;
 
+    a=0;a2=0; oldx=0; /*-Wall*/
 
     n = *sn;  nvar = *snvar;
     cn = *scn; npt = *snpt;
@@ -214,7 +214,8 @@ void agsurv3(int   *sn,    int   *snvar,    int   *sncurve,
 		/*
 		** kalbfleisch estimator requires iteration;
 		*/
-		if (deaths = nrisk) km=0;
+		/* surely a bug: if (deaths = nrisk) km=0; */
+		if (deaths == nrisk) km=0;
 		else if (deaths ==1) {
 		    km = pow(1- score[kk]/denom, 1/score[kk]);
 		    }

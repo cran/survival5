@@ -1,6 +1,6 @@
 
-R : Copyright 1999, The R Development Core Team
-Version 0.90.0  (November 22, 1999)
+R : Copyright 2000, The R Development Core Team
+Version 0.99.0  (February 7, 2000)
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
@@ -17,14 +17,6 @@ Type	"q()" to quit R.
 > #dyn.load('../loadmod.o')
 > postscript(file='Rtest.ps')
 > library(survival5)
-
-Attaching Package "package:survival5":
-
-
-	The following object(s) are masked from package:base :
-
-	 sort.list 
-
 > #options(na.action='na.omit', contrasts='contr.treatment')
 > #
 > # This data set caused problems for Splus 3.4 due to a mistake in
@@ -258,14 +250,6 @@ n=227 (1 observations deleted due to missing)
 > 
 > xx <- pspline(lung$age, nterm=3, theta=.3)
 Loading required package: splines 
-
-Attaching Package "package:splines":
-
-
-	The following object(s) are masked from package:base :
-
-	 as.data.frame.data.frame 
-
 > xx <- matrix(unclass(xx), ncol=ncol(xx))   # the raw matrix
 > lfit4 <- survreg(Surv(time, status) ~xx, lung)
 > lfit5 <- survreg(Surv(time, status) ~age, lung)

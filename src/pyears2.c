@@ -1,5 +1,4 @@
 /*  SCCS @(#)pyears2.c	5.2 10/27/98
-/*
 **  Person-years calculations.
 **     same as pyears1, but no expected rates
 **

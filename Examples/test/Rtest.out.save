@@ -1,6 +1,6 @@
 
-R : Copyright 1999, The R Development Core Team
-Version 0.90.0  (November 22, 1999)
+R : Copyright 2000, The R Development Core Team
+Version 0.99.0  (February 7, 2000)
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
@@ -19,14 +19,6 @@ Type	"q()" to quit R.
 > #dyn.load("../loadmod.o")
 > #attach("../.Data")
 > library(survival5)
-
-Attaching Package "package:survival5":
-
-
-	The following object(s) are masked from package:base :
-
-	 sort.list 
-
 > library(date)
 > #options(na.action="na.omit", contrasts='contr.treatment')
 > #
@@ -2151,11 +2143,12 @@ Likelihood ratio test=29.4  on 12 df, p=0.00344  n= 340
            [,1]       [,2]      [,3]      [,4]
 [1,] -0.5175702 -0.6194396 -0.699869 -0.650416
 > t(cmat) %*% wfit$var[rx,rx] %*% cmat  # var matrix (eqn 3.2)
-           [,1]       [,2]       [,3]       [,4]
-[1,] 0.09455665 0.06017601 0.05677152 0.04376149
-[2,] 0.06017601 0.13242841 0.13011523 0.11603238
-[3,] 0.05677152 0.13011523 0.17235798 0.15906935
-[4,] 0.04376149 0.11603238 0.15906935 0.23978095
+      
+             [,1]       [,2]       [,3]       [,4]
+  [1,] 0.09455665 0.06017601 0.05677152 0.04376149
+  [2,] 0.06017601 0.13242841 0.13011523 0.11603238
+  [3,] 0.05677152 0.13011523 0.17235798 0.15906935
+  [4,] 0.04376149 0.11603238 0.15906935 0.23978095
 > 
 > # Anderson-Gill fit
 > fita <- coxph(Surv(start, stop, event) ~ rx + size + number + cluster(id),

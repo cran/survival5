@@ -1,5 +1,4 @@
 /*  SCCS @(#)chsolve2.c	5.2 10/27/98
-/*
 ** Solve the equation Ab = y, where the cholesky decomposition of A and y
 **   are the inputs.
 **

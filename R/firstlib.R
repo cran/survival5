@@ -60,6 +60,5 @@ naresid <- function(x, ...)
 naprint.default <- function(...)
     return("")
 ###
-sort.list<-function(x) order(x)
 labels.survreg <- function(object, ...) attr(object,"term.labels")
 

@@ -1,5 +1,4 @@
 /*  SCCS @(#)agmart.c	5.2 10/27/98
-/*
 ** Compute the martingale residual for a counting process model
 **
 ** Input

@@ -1,5 +1,4 @@
 /*  SCCS @(#)coxscore.c	5.2 10/27/98
-/*
 ** Compute the score residuals for a Cox model
 **
 ** Input
@@ -38,7 +37,7 @@ void coxscore(int   *nx,      int   *nvarx,    double *y,
     int dd;
     double *time, *status;
     double *a, *a2;
-    double denom, e_denom;
+    double denom=0, e_denom; /*-Wall*/
     double risk;
     double **covar;
     double **resid;

@@ -1,5 +1,4 @@
 /*  SCCS @(#)agfit2.c	5.2 10/27/98
-/*
 ** Anderson-Gill formulation of the cox Model
 **
 **  the input parameters are
@@ -75,7 +74,7 @@ void agfit2( int   *maxiter,  int   *nusedx,  int   *nvarx,
     double  denom, zbeta, risk;
     double  time;
     double  temp, temp2;
-    double  newlk;
+    double  newlk=0; /*-Wall*/
     int     halving;    /*are we doing step halving at the moment? */
     double     method;
     double  meanwt;

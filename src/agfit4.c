@@ -287,13 +287,13 @@ void agfit4_b(int *maxiter, int *nusedx, int *nvarx,
     int     iter;
     int     nused, nvar;
     int    nf, nvar2;
-    int    fgrp;
+    int    fgrp=0; /*-Wall*/
     int    halving;
     int    itemp, endp, deaths;
 
     double  denom, zbeta, risk;
     double  temp, temp2;
-    double  newlk;
+    double  newlk=0; /*-Wall*/
     double  d2, efron_wt;
     double  meanwt, time;
     double  method;

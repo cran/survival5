@@ -1,5 +1,4 @@
 /*  SCCS @(#)pyears1.c	5.2 10/27/98
-/*
 **  Person-years calculations, in its most general
 **
 **  Input:

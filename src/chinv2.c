@@ -1,5 +1,4 @@
 /*  SCCS @(#)chinv2.c	5.2 10/27/98
-/*
 ** matrix inversion, given the cholesky decomposition
 **
 ** input  **matrix, which contains the chol decomp of an n by n

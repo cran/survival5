@@ -1,5 +1,4 @@
 /*  SCCS @(#)dmatrix.c	5.2 10/27/98
-/*
 ** set up ragged arrays, with #of columns and #of rows
 */
 #include "survS.h"

@@ -1,5 +1,4 @@
 /* SCCS @(#)survreg3.c	1.1 02/06/99
-/*
 ** This is a version of survreg2.c, but for the "user written" distributions
 **   It get the derivative information for all observations at once.
 **
@@ -74,7 +73,7 @@ void survreg3(int   *maxiter,   int   *nx,    int   *nvarx,
     int i,j;	
     int n;
     double *newbeta,	   *savediag;
-    double temp;
+    /* double temp;*/
     int halving, iter;
     double newlk;
 
@@ -289,7 +288,7 @@ static double dolik(int n, double *beta, int whichcase) {
     double  temp1, temp2;
     double  sz, zz, zu;
     double  sig2;
-    double g, dg, ddg, dsig, ddsig, dsg;
+    double g=0, dg=0, ddg=0, dsig=0, ddsig=0, dsg=0;/*-Wall*/
 
 
     for (i=0; i<nvar2; i++) {

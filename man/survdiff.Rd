@@ -69,7 +69,7 @@ This function implements the G-rho family of
 Harrington and Fleming (1982), with weights on each death of \code{(S(t))^rho},
 where \code{S} is the Kaplan-Meier estimate of survival.
 When \code{rho = 0} this is the log-rank or Mantel-Haenszel test,
-and when \code{rho = 1} it is equivalent to the Peto \& Peto modification
+and when \code{rho = 1} it is equivalent to the Peto & Peto modification
 of the Gehan-Wilcoxon test.
 
 

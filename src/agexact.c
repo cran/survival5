@@ -1,5 +1,4 @@
 /*  SCCS @(#)agexact.c	5.2 10/27/98
-/*
 ** Anderson-Gill formulation of the cox Model
 **   Do an exact calculation of the partial likelihood. (CPU city!)
 **
@@ -68,7 +67,7 @@ void agexact(int *maxiter,  int *nusedx,   int *nvarx,   double *start,
     double  denom, zbeta, weight;
     double  time;
     double  temp;
-    double  newlk;
+    double  newlk=0; /*-Wall*/
     int     halving;    /*are we doing step halving at the moment? */
     int     nrisk, deaths;
     int *index, *atrisk;

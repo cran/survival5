@@ -1,5 +1,5 @@
 /*     SCCS @(#)survindex2.c	5.2 10/27/98
-/* A subroutine for surv.fit.print
+**   A subroutine for surv.fit.print
 **
 ** Input --
 **      n:      number of survival times

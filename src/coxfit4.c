@@ -127,7 +127,7 @@ void coxfit4_a(int *nusedx, int *nvarx, double *yy,
     int     nused, nvar;
     int    nf, nvar2;
 
-    double  denom, zbeta, risk;
+    double  denom=0, zbeta, risk; /*-Wall*/
     double  temp, temp2;
     double  ndead;
     double  d2, efron_wt;
@@ -308,13 +308,13 @@ void coxfit4_b(int *maxiter, int *nusedx, int *nvarx,
     int     iter;
     int     nused, nvar;
     int    nf, nvar2;
-    int    fgrp;
+    int    fgrp=0; /*-Wall*/
     int    halving;
 
-    double  denom, zbeta, risk;
+    double  denom=0, zbeta, risk; /*-Wall*/
     double  temp, temp2;
-    double  newlk;
-    double  d2, efron_wt;
+    double  newlk=0; /*-Wall*/
+    double  d2, efron_wt=0; /*-Wall*/
     double  method;
     double  **imat, **jmat;
     double  ndead;
@@ -579,7 +579,7 @@ static void cmatrix_free(double **data)
 void coxfit4_c (int *nusedx, int *nvar, int *methodx, double *expect) {
 
     double hazard, 
-           denom,
+           denom=0, /*-Wall*/
            temp, temp2,
            efron_wt,
            ndead, 
@@ -587,7 +587,7 @@ void coxfit4_c (int *nusedx, int *nvar, int *methodx, double *expect) {
     int    person,
            nused,
            method,
-           i, j;
+           i, j=0; /*-Wall*/
 
     nused = *nusedx;
     method= *methodx;

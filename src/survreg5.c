@@ -1,5 +1,4 @@
 /* SCCS @(#)survreg5.c	1.1 02/06/99
-/*
 ** The variant of survreg4 for user-written distributions, penalized models
 **
 ** Input
@@ -52,11 +51,6 @@
 **  For the calculations involving sigma and an interval censored datum, I
 **    can't calculate the sigma derivatives simply from the eta derivs.
 **
-**  To add a new distribution:
-**              add a new "static void" declaration
-**              add it to the "switch(*dist)" list, (2 places)
-**              add the new subroutine to the bottom of the code, see
-**                      logist_d as an example
 */
 #include <stdio.h>
 #include <math.h>
@@ -97,12 +91,12 @@ void survreg5(int   *maxiter,   int   *nx,       int   *nvarx,
 
     int i,j;	
     int n;
-    double *newbeta,
-	   *savediag;
-    double temp;
+    double *newbeta;
+    /*	   *savediag;*/
+    /*double temp;*/
     int halving, iter;
     double newlk;
-    int lastchance;
+    int lastchance=0; /*-Wall*/
 
     n = *nx;
     nvar = *nvarx;
@@ -405,8 +399,8 @@ static double dolik(int n, double *beta, int whichcase) {
     double  sz;
     double  sig2;
     double  w;
-    double g, dg, ddg, dsig, ddsig, dsg;
-    int fgrp;
+    double g=0, dg=0, ddg=0, dsig=0, ddsig=0, dsg=0;/*-Wall*/
+    int fgrp=0;/*-Wall*/
     int icount;
 
     loglik=0;
@@ -553,7 +547,7 @@ static double dolik(int n, double *beta, int whichcase) {
 	    }
 	loglik += g * wt[person];
 	if (debug>3) {
-	    fprintf(stderr," z=%f g=%f, dg=%f, wt=%f\n", z, g, dg, wt[person]);
+	    fprintf(stderr," z=%f g=%f, dg=%f, wt=%f\n", zz, g, dg, wt[person]);
 	    fflush(stderr);
 	    }
      

@@ -4,7 +4,6 @@
 **/
 
 /* SCCS @(#)survreg4.c	1.4 12/03/98
-/*
 ** The variant of survreg2 for penalized models
 **
 ** Input
@@ -112,12 +111,12 @@ void survreg4(int   *maxiter,   int   *nx,       int   *nvarx,
 
     int i,j;	
     int n;
-    double *newbeta,
-	   *savediag;
-    double temp;
+    double *newbeta;
+    /*	   *savediag;*/
+    /*double temp;*/
     int halving, iter;
     double newlk;
-    int lastchance;
+    int lastchance=0;/*-Wall*/
 
     n = *nx;
     nvar = *nvarx;
@@ -417,8 +416,8 @@ static double dolik(int n, double *beta, int whichcase) {
     double  sig2;
     double  w;
     static double  funs[4], ufun[4];
-    double g, dg, ddg, dsig, ddsig, dsg;
-    int fgrp;
+    double g=0, dg=0, ddg=0, dsig=0, ddsig=0, dsg=0;/*-Wall*/
+    int fgrp=0;/*-Wall*/
 
     loglik=0;
     for (i=0; i<nf; i++) fdiag[i] =0;

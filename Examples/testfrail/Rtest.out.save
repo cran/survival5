@@ -1,6 +1,6 @@
 
-R : Copyright 1999, The R Development Core Team
-Version 0.90.0  (November 22, 1999)
+R : Copyright 2000, The R Development Core Team
+Version 0.99.0  (February 7, 2000)
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
@@ -20,14 +20,6 @@ Type	"q()" to quit R.
 > #attach("../.Data")
 > #options(na.action="na.omit", contrasts='contr.treatment')
 > library(survival5)
-
-Attaching Package "package:survival5":
-
-
-	The following object(s) are masked from package:base :
-
-	 sort.list 
-
 > library(date)
 > #
 > # Test the logic of the new program, by fitting some no-frailty models
@@ -159,14 +151,6 @@ Likelihood ratio test=30  on 14.6 df, p=0.0101  n= 150
 > fit0 <- coxph(Surv(time, status) ~ ph.ecog + age, lung)
 > fit1 <- coxph(Surv(time, status) ~ ph.ecog + pspline(age,3), lung)
 Loading required package: splines 
-
-Attaching Package "package:splines":
-
-
-	The following object(s) are masked from package:base :
-
-	 as.data.frame.data.frame 
-
 > fit2 <- coxph(Surv(time, status) ~ ph.ecog + pspline(age,4), lung)
 > fit3 <- coxph(Surv(time, status) ~ ph.ecog + pspline(age,8), lung)
 > 
@@ -322,7 +306,7 @@ Likelihood ratio test=19.4  on 4.9 df, p=0.00149  n= 26
 + 	     qchisq( c(.8, .9, .95, .99), sum(fit1$df))), 3)
 + }
        80%   90%   95%    99%
-[1,] 4.271 5.759 7.200 10.477
+[1,] 4.263 5.718 7.123 10.413
 [2,] 4.313 5.874 7.399 10.861
 > # From:	McGilchrist and Aisbett, Biometrics 47, 461-66, 1991
 > # Data on the recurrence times to infection, at the point of insertion of
