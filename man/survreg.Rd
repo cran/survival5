@@ -1,5 +1,7 @@
 \name{survreg}
 \alias{survreg}
+\alias{survreg.old}
+\alias{survReg}
 \title{
 Regression for a Parametric Survival Model
 }
@@ -27,11 +29,10 @@ subset of the observations to be used in the fit.
 function to be used to handle any NAs in the data.
 }
 \item{dist}{
-assumed distribution for y variable.  These include
-weibull, exponential, gaussian, logistic, lognormal and loglogistic.
+assumed distribution for y variable. 
 If the argument is a character string, then it is assumed to name an
-element from \code{survreg.distributions} (enter \code{names(survreg.distributions)}
-for a full list of choices).
+element from \code{\link{survreg.distributions}}. These include
+\code{"weibull"}, \code{"exponential"}, \code{"gaussian"}, \code{"logistic"}, \code{"lognormal"} and \code{"loglogistic"}.
 Otherwise, it is assumed to be a user defined list conforming to this
 standard.
 }
@@ -65,7 +66,9 @@ other arguments which will be passed to \code{survreg.control}.
 an object of class \code{survreg} is returned.
 }
 \section{NOTE}{
-This routine underwent significant changes from survival4 to survival5. The \link{survreg.old} function gives a backwards-compatible interface.
+This routine underwent significant changes from survival4 to
+survival5. The \link{survreg.old} function gives a backwards-compatible
+interface. 
 }
 \section{COMPUTATION}{
 The routine uses a Newton-Raphson iteration with step halving, 
@@ -74,10 +77,14 @@ Fisher scoring is used for intermediate steps where the information matrix
 is not positive definite.
 }
 \seealso{
-\code{\link{survreg.object}},\code{\link{pspline}},\code{\link{frailty}},\code{\link{ridge}}
+\code{\link{survreg.object}}, \code{\link{survreg.distributions}},
+\code{\link{pspline}}, \code{\link{frailty}}, \code{\link{ridge}}}
 \examples{
 data(ovarian)
+## These are all the same
 survreg(Surv(futime, fustat) ~ ecog.ps + rx, ovarian, dist='weibull',scale=1)
+survreg(Surv(futime, fustat) ~ ecog.ps + rx, ovarian,
+dist="exponential")
 survreg.old(Surv(futime, fustat) ~ ecog.ps + rx, ovarian, dist='extreme',fixed=list(scale=1),link="log")
 
 }

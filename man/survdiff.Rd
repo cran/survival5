@@ -5,7 +5,7 @@ Test Survival Curve Differences
 }
 \description{
 Tests if there is a difference between two or more survival curves using
-the G-rho family of tests, or for a single curve against a known alternative.
+the \eqn{G^\rho}{G-rho} family of tests, or for a single curve against a known alternative.
 }
 \usage{
 survdiff(formula, data, subset, na.action, rho=0)
@@ -40,10 +40,10 @@ subset argument has been used.  Default is \code{options()$na.action}.
 }
 \item{rho}{
 a scalar parameter that controls the type of test.
-}
+}}
 \value{
 a list with components:
-}
+
 \item{n}{
 the number of subjects in each group.
 }
@@ -66,10 +66,10 @@ optionally, the number of subjects contained in each stratum.
 }}
 \section{METHOD}{
 This function implements the G-rho family of
-Harrington and Fleming (1982), with weights on each death of \code{(S(t))^rho},
-where \code{S} is the Kaplan-Meier estimate of survival.
-When \code{rho = 0} this is the log-rank or Mantel-Haenszel test,
-and when \code{rho = 1} it is equivalent to the Peto & Peto modification
+Harrington and Fleming (1982), with weights on each death of \eqn{S(t)^\rho}{S(t)^rho},
+where \eqn{S(t)}{S} is the Kaplan-Meier estimate of survival.
+With \code{rho = 0} this is the log-rank or Mantel-Haenszel test,
+and with \code{rho = 1} it is equivalent to the Peto & Peto modification
 of the Gehan-Wilcoxon test.
 
 
@@ -84,13 +84,30 @@ Harrington, D. P. and Fleming, T. R. (1982).
 A class of rank test procedures for censored survival data.
 \emph{Biometrika}
 \bold{69}, 553-566.
-\examples{\dontrun{
-survdiff(Surv(futime, fustat) ~ rx)
-survdiff(Surv(time, status) ~ pat.karno + strata(inst), data=cancer)
+\examples{
+## Two-sample test
+data(ovarian)
+survdiff(Surv(futime, fustat) ~ rx,data=ovarian)
+rm(ovarian)
+## Stratified 7-sample test
+data(lung)
+survdiff(Surv(time, status) ~ pat.karno + strata(inst), data=lung)
+rm(lung)
 
-
-expect <- survexp(entry, birth, sex, futime)
-survdiff(Surv(futime, fustat) ~ offset(expect$surv))  #One sample log-rank
-}}
+## need "date" package for this example
+if (require("date",quietly=TRUE)){
+  data(heart)
+  data(ratetables)
+  ## Expected survival for heart transplant patients based on
+  ## US mortality tables
+  expect <- survexp(futime ~ ratetable(age=(accept.dt - birth.dt),
+sex=1,year=accept.dt,race="white"), jasa, cohort=F,
+ratetable=survexp.usr)
+  ## actual survival is much worse (no surprise)
+  print(survdiff(Surv(jasa$futime, jasa$fustat) ~ offset(expect)))
+  detach("package:date")
+  rm(jasa,jasa1,heart,survexp.az,survexp.azr,survexp.fl,survexp.flr,survexp.mn,survexp.mnwhite,survexp.us,survexp.usr,survexp.wnc)
+}
+}
 \keyword{survival}
-% Converted by Sd2Rd version 0.3-2.
+% Converted by Sd2Rd version 0.3-2. and hand edited.

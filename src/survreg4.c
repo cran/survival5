@@ -69,6 +69,7 @@
 #include "Rdefines.h"
 #include "Rinternals.h"
 #include "survproto.h"
+#include <R_ext/Mathlib.h>
 
 #define  PI	M_PI
 #define  SPI    2.506628274631001     /* sqrt(2*pi) */
@@ -726,13 +727,13 @@ static void gauss_d(double z, double ans[4], int j)
 		ans[2] = -z;
 		ans[3] = z*z -1;
 		break;
-	case 2: if (z>0) {
-		    ans[0] = (1 + erf(z/ROOT_2))/2;
-		    ans[1] =  erfc(z/ROOT_2) /2;
+        case 2: if (z>0) {
+	            ans[0] = pnorm5(z,0,1,1,0); /*(1 + erf(z/ROOT_2))/2;*/
+		    ans[1] = pnorm5(-z,0,1,1,0); /* erfc(z/ROOT_2) /2;*/
 		    }
 		else {
-		    ans[1] = (1 + erf(-z/ROOT_2))/2;
-		    ans[0] =  erfc(-z/ROOT_2) /2;
+		    ans[1] = pnorm5(-z,0,1,1,0); /*(1 + erf(-z/ROOT_2))/2;*/
+		    ans[0] = pnorm5(z,0,1,1,0); /* erfc(-z/ROOT_2) /2;*/
 		    }
 		ans[2] = f;
 		ans[3] = -z*f;

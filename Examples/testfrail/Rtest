@@ -111,6 +111,7 @@ fit1 <- coxph(Surv(futime, fustat) ~ rx + ridge(age, ecog.ps, theta=1),
 dfs <- eigen(solve(fit1$var, fit1$var2))$values
 
 if (gc()[2,1]>60000){
+set.seed(42)
 temp <- matrix(rnorm(30000), ncol=3)
 temp2 <- apply((temp^2) %*% dfs, 1, sum)
 

@@ -1,6 +1,6 @@
 
 R : Copyright 2000, The R Development Core Team
-Version 0.99.0  (February 7, 2000)
+Version 1.0.0  (February 29, 2000)
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
@@ -299,6 +299,7 @@ Likelihood ratio test=19.4  on 4.9 df, p=0.00149  n= 26
 > dfs <- eigen(solve(fit1$var, fit1$var2))$values
 > 
 > if (gc()[2,1]>60000){
++ set.seed(42)
 + temp <- matrix(rnorm(30000), ncol=3)
 + temp2 <- apply((temp^2) %*% dfs, 1, sum)
 + 
@@ -306,7 +307,7 @@ Likelihood ratio test=19.4  on 4.9 df, p=0.00149  n= 26
 + 	     qchisq( c(.8, .9, .95, .99), sum(fit1$df))), 3)
 + }
        80%   90%   95%    99%
-[1,] 4.263 5.718 7.123 10.413
+[1,] 4.290 5.729 7.179 10.301
 [2,] 4.313 5.874 7.399 10.861
 > # From:	McGilchrist and Aisbett, Biometrics 47, 461-66, 1991
 > # Data on the recurrence times to infection, at the point of insertion of

@@ -1,7 +1,7 @@
 \name{veteran}
 \alias{veteran}
 \title{Veterans' Administration Lung Cancer study}
-\usage{data(pbc)}
+\usage{data(veteran)}
 
 \format{
     \tabular{ll}{

@@ -1,11 +1,9 @@
 \name{residuals.survreg}
 \alias{residuals.survreg}
-\title{
-Compute Residuals for `survreg' Objects
-}
+\title{Compute Residuals for `survreg' Objects}
 \description{
-This is a method for the function \code{residuals} for objects inheriting from
-class \code{survreg}.  
+This is a method for the function \code{\link{residuals}} for objects
+inheriting from class \code{survreg}.  
 }
 \usage{
 residuals.survreg(object, type, rsigma=T, collapse=F, weighted=F)
@@ -17,7 +15,8 @@ an object inheriting from class \code{survreg}.
 \item{type}{
 type of residuals, with choices of \code{"response"}, \code{"deviance"},
 \code{"dfbeta"}, \code{"dfbetas"}, \code{"working"}, \code{"ldcase"}, \code{"lsresp"},
-\code{"ldshape"}, and \code{"matrix"}.  See the LaTeX documentation for more
+\code{"ldshape"}, and \code{"matrix"}.  See the LaTeX documentation
+(\code{survival5/doc/survival.ps.gz}) for more
 detail.
 }
 \item{rsigma}{
@@ -43,19 +42,22 @@ scaled by the standard deviation of that coefficient.
 
 
 The matrix type produces a matrix based on derivatives of the log-likelihood
-function.  Let L be the log-likelihood, p be the linear predictor X \%*\% coef,
-and s be log(sigma).  Then the 6 columns of the matrix are L, dL/dp,
-ddL/(dp dp), dL/ds, ddL/(ds ds) and ddL/(dp ds), where d stands for the
-derivative and dd the second derivative.  Diagnostics based on these quantities
+function.  Let \eqn{L} be the log-likelihood, \eqn{p} be the linear predictor \eqn{X\beta}{X \%*\% coef},
+and \eqn{s} be \eqn{\log(\sigma)}.  Then the 6 columns of the matrix are
+\eqn{L}, \eqn{dL/dp},\eqn{\partial^2L/\partial p^2}{ddL/(dp dp)},
+\eqn{dL/ds}, \eqn{\partial^2L/\partial s^2}{ddL/(ds ds)}  and
+\eqn{\partial^2L/\partial p\partial s}{ddL/(dp ds)}.  Diagnostics based on these quantities
 are discussed in an article by Escobar and Meeker.
 The main ones are the likelihood displacement residuals for perturbation
-of a case weight (ldcase), the response value (ldresp), and the shape.
+of a case weight (\code{ldcase}), the response value (\code{ldresp}), and the \code{shape}.
 }
 \references{
 Escobar, L. A. and Meeker, W. Q. (1992).
 Assessing influence in regression analysis with censored data.
 \emph{Biometrics}
 \bold{48}, 507-528.
+}
+\seealso{\code{\link{predict.survreg}}}
 \examples{
 data(aml)
 fit <- survreg(Surv(time,status) ~x, aml)

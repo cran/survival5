@@ -53,8 +53,9 @@ censored data. \emph{Biometrics,} 48, 507-528.
 }
 \seealso{
 \code{\link{survreg}}, \code{\link{residuals.survreg}}
-\examples{\dontrun{
+\examples{
 # Draw figure 1 from Escobar and Meeker
+data(stanford2)
 fit <- survreg(Surv(time,status) ~ age + age^2, data=stanford2,
 	dist='lognormal')
 plot(stanford2$age, stanford2$time, xlab='Age', ylab='Days',
@@ -62,6 +63,6 @@ plot(stanford2$age, stanford2$time, xlab='Age', ylab='Days',
 pred <- predict(fit, newdata=list(age=1:65), type='quantile',
 	         p=c(.1, .5, .9))
 matlines(1:65, pred, lty=c(2,1,2), col=1)
-}}
+}
 \keyword{survival}
-% Converted by Sd2Rd version 0.3-2.
+

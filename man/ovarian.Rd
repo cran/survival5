@@ -9,8 +9,9 @@
 	age: \tab in years\cr
 	resid.ds:\tab residual disease present (1=no,2=yes)\cr
 	rx:\tab treatment group\cr
-	ecog.ps:\tab ECOG performance status (0=healthy, 5=dead)\cr
+	ecog.ps:\tab ECOG performance status (1 is better, see reference)\cr
      }
  }
-\source{Miller "Survival Analysis"}
+\source{Terry Therneau (? from an Eastern Cooperative Oncology Group study)}
+\references{for ECOG performance status: \url{http://ecog.dfci.harvard.edu/~ecogdba/general/perf_stat.html}}
 \keyword{datasets}
